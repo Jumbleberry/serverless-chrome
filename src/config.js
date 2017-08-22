@@ -39,7 +39,7 @@ const defaultChromeConfig = {
 
 export default {
   // log some extra stuff. It'll show up in your CloudWatch logs
-  logging: false,
+  logging: true,
 
   // dynamo DB table name
   dynamoDBTableName: "DeadPixels",
