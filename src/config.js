@@ -1,4 +1,4 @@
-import captureScreenshotHandler from './handlers/captureScreenshot'
+import firePixelHandler from './handlers/firePixel'
 import userConfig from '../config'
 
 // TODO: clean up the flags we don't need/care about
@@ -45,7 +45,7 @@ export default {
   dynamoDBTableName: "DeadPixels",
 
   // this is a function which will get executed after chrome has spawned
-  handler: captureScreenshotHandler,
+  handler: firePixelHandler,
 
   // *** //
 
