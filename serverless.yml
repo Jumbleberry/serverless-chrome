@@ -2,7 +2,7 @@ service: serverless-chrome
 
 provider:
   name: aws
-  role: arn:aws:iam::649052894197:role/lambda_write_to_dynamo_db
+  role: arn:aws:iam::649052894197:role/lambda_delete_from_dynamo_db
   runtime: nodejs6.10
   stage: dev
   region: us-east-1
