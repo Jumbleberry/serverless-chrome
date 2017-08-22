@@ -17,7 +17,8 @@ export default (async function firePixelHandler (event) {
 
   await Network.enable()
   await Page.enable()
-  await Page.navigate({ url: event['url'] })
+  await Page.navigate({ url: event.url })
+
   // wait until page is done loading, or timeout
   await new Promise((resolve, reject) => {
     const timeout = setTimeout(
