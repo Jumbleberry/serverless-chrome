@@ -1,6 +1,6 @@
 import config from './config'
 import { spawn as spawnChrome } from './chrome'
-import { log } from './utils'
+import { log, generateError } from './utils'
 
 // eslint-disable-next-line import/prefer-default-export
 export async function run (event, context, callback, handler = config.handler) {
@@ -11,14 +11,14 @@ export async function run (event, context, callback, handler = config.handler) {
     await spawnChrome()
   } catch (error) {
     console.error('Error in spawning Chrome')
-    return callback(error)
+    handlerError = error
   }
 
   try {
     handlerResult = await handler(event, context)
   } catch (error) {
     console.error('Error in handler:', error)
-    handlerError = error
+    handlerError = generateError(event)
   }
 
   log('Handler result:', JSON.stringify(handlerResult, null, ' '))
