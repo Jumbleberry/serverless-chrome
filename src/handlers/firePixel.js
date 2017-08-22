@@ -15,9 +15,10 @@ export default (async function firePixelHandler (event) {
 
   const loadEventFired = Page.loadEventFired()
 
+  await Network.setUserAgentOverride({ userAgent: event['userAgent'] })
   await Network.enable()
   await Page.enable()
-  await Page.navigate({ url: event.url })
+  await Page.navigate({ url: event['url'] })
 
   // wait until page is done loading, or timeout
   await new Promise((resolve, reject) => {
