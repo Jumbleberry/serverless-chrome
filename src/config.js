@@ -41,6 +41,9 @@ export default {
   // log some extra stuff. It'll show up in your CloudWatch logs
   logging: false,
 
+  // dynamo DB table name
+  dynamoDBTableName: "DeadPixels",
+
   // this is a function which will get executed after chrome has spawned
   handler: captureScreenshotHandler,
 

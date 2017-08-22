@@ -32,3 +32,30 @@ export function psKill (options = { command: '' }) {
 export function sleep (miliseconds = 1000) {
   return new Promise(resolve => setTimeout(() => resolve(), miliseconds))
 }
+
+export function generateError (event) {
+    function PixelFailsToFireError(message, data) {
+        this.name = "PixelFailsToFireError";
+        this.message = JSON.stringify({"message": message, "data": data});
+    }
+    PixelFailsToFireError.prototype = new Error();
+
+    return new PixelFailsToFireError('Pixel fails to fire', JSON.stringify(event, null, '  '));
+}
+
+export function removeFromDeadPixels (event) {
+    var AWS = require('aws-sdk');
+    var documentClient = new AWS.DynamoDB.DocumentClient();
+
+    var params = {
+        TableName: config.dynamoDBTableName,
+        Key : {
+            hid: event['hid']
+        }
+    };
+
+    documentClient.delete(params, function(err, data) {
+        if (err) console.log(err);
+        else console.log(data);
+    });
+}
