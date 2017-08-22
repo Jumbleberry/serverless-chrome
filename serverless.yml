@@ -2,9 +2,10 @@ service: serverless-chrome
 
 provider:
   name: aws
+  role: arn:aws:iam::649052894197:role/lambda_write_to_dynamo_db
   runtime: nodejs6.10
   stage: dev
-  region: us-west-2
+  region: us-east-1
   environment:
     CHROME_PATH: ./headless-chrome/headless_shell
 
@@ -17,11 +18,6 @@ plugins:
 functions:
   run:
     description: Run headless Chromium
-    memorySize: 1536
+    memorySize: 1024
     timeout: 30
     handler: handler.run
-
-    events:
-      - http:
-          path: chrome
-          method: get
