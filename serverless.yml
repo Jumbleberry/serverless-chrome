@@ -1,10 +1,9 @@
-service: serverless-chrome
+service: headless-chrome
 
 provider:
   name: aws
-  role: arn:aws:iam::649052894197:role/lambda_delete_from_dynamo_db
+  role: arn:aws:iam::649052894197:role/lambda_fire_pixel
   runtime: nodejs6.10
-  stage: dev
   region: us-east-1
   environment:
     CHROME_PATH: ./headless-chrome/headless_shell
@@ -16,8 +15,8 @@ plugins:
   - serverless-webpack
 
 functions:
-  run:
-    description: Run headless Chromium
+  fire-pixel:
+    description: Fire pixel in headless chrome
     memorySize: 1024
     timeout: 30
     handler: handler.run
