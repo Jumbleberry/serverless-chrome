@@ -39,6 +39,7 @@
     "chrome-remote-interface": "^0.22.0",
     "got": "^6.7.1",
     "ps-node": "^0.1.6",
+    "serverless-plugin-lambda-dead-letter": "^1.2.1",
     "uuid": "^3.0.1"
   },
   "devDependencies": {

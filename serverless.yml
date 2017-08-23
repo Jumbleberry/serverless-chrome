@@ -13,6 +13,7 @@ custom:
 
 plugins:
   - serverless-webpack
+  - serverless-plugin-lambda-dead-letter
 
 functions:
   fire-pixel:
@@ -20,3 +21,5 @@ functions:
     memorySize: 1024
     timeout: 30
     handler: handler.run
+    deadLetter:
+      targetArn: arn:aws:sns:us-east-1:649052894197:DeadPixel
