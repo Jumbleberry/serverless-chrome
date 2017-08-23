@@ -21,5 +21,9 @@ functions:
     memorySize: 1024
     timeout: 30
     handler: handler.run
+    events:
+      - http:
+          method: post
+          path: pixels/fire
     deadLetter:
       targetArn: arn:aws:sns:us-east-1:649052894197:DeadPixel
