@@ -26,4 +26,4 @@ functions:
           method: post
           path: pixels/fire
     deadLetter:
-      targetArn: arn:aws:sns:us-east-1:649052894197:DeadPixel
+      targetArn: arn:aws:sns:us-east-1:649052894197:DeadPixels
