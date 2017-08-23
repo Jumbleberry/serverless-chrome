@@ -33,14 +33,14 @@ export function sleep (miliseconds = 1000) {
   return new Promise(resolve => setTimeout(() => resolve(), miliseconds))
 }
 
-export function generateError (event) {
+export function generateError (event, msg) {
     function PixelFailsToFireError(message, data) {
         this.name = "PixelFailsToFireError";
         this.message = JSON.stringify({"message": message, "data": data});
     }
     PixelFailsToFireError.prototype = new Error();
 
-    return new PixelFailsToFireError('Pixel fails to fire', JSON.stringify(event, null, '  '));
+    return new PixelFailsToFireError(msg, JSON.stringify(event, null, '  '));
 }
 
 export function removeFromDeadPixels (event) {

@@ -1,7 +1,7 @@
 import Cdp from 'chrome-remote-interface'
 import { removeFromDeadPixels } from '../utils'
 
-const LOAD_TIMEOUT = 1
+const LOAD_TIMEOUT = 1000 * 30
 
 export default (async function firePixelHandler (event) {
   const requestsMade = []
