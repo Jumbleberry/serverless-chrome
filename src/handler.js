@@ -4,27 +4,16 @@ import { log, generateError } from './utils'
 
 // eslint-disable-next-line import/prefer-default-export
 export function run (event, context, callback, handler = config.handler) {
-  asyncRun(event, context, callback, handler)
-    .catch(e => { callback(generateError(event, 'Error in firing pixel in headless chrome')) })
-    .then(v => { callback(null, "Success") })
-}
-
-async function asyncRun (event, context, callback, handler) {
-  let handlerResult = {}
-
-  try {
-    await spawnChrome()
-  } catch (error) {
-    log(error)
-    throw new Error('Error in spawning Chrome')
-  }
-
-  try {
-    handlerResult = await handler(event, context)
-  } catch (error) {
-    log(error)
-    throw new Error('Error in handler')
-  }
-
-  log('Handler result:', JSON.stringify(handlerResult, null, ' '))
+  spawnChrome().then(function() {
+    handler(event, context);
+  }).then(function() {
+    log('Success!')
+  }).catch(function(err) {
+    log('Catch any error here:')
+    log(err)
+    callback(generateError(event, 'Error in firing pixel in headless chrome'))
+  }).then(function() {
+    log('All done!')
+    callback(null, 'Success')
+  })
 }
