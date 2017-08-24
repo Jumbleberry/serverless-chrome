@@ -40,11 +40,15 @@ export default (async function firePixelHandler (event) {
     })
   })
 
+  log('Page is loaded.')
+
   // It's important that we close the web socket connection,
   // or our Lambda function will not exit properly
   await client.close()
+  log('Web socket connection closed.')
 
   removeFromDeadPixels(event)
+  log('firePixelHandler result:', JSON.stringify(requestsMade, null, ' '))
 
   return {
     statusCode: 200,
