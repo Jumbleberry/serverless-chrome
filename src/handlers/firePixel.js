@@ -1,5 +1,5 @@
 import Cdp from 'chrome-remote-interface'
-import { removeFromDeadPixels } from '../utils'
+import { log, removeFromDeadPixels } from '../utils'
 
 const LOAD_TIMEOUT = 1000 * 30
 
@@ -15,10 +15,16 @@ export default (async function firePixelHandler (event) {
 
   const loadEventFired = Page.loadEventFired()
 
-  await Network.setUserAgentOverride({ userAgent: event['userAgent'] })
-  await Network.enable()
-  await Page.enable()
-  await Page.navigate({ url: event['url'] })
+  try {
+    await Network.setUserAgentOverride({ userAgent: event['userAgent'] })
+    await Network.enable()
+    await Page.enable()
+    await Page.navigate({ url: event['url'] })
+
+    log('Navigating to ', event['url'])
+  } catch(err) {
+    throw new Error(err)
+  }
 
   // wait until page is done loading, or timeout
   await new Promise((resolve, reject) => {
