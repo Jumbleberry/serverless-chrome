@@ -1,5 +1,5 @@
 import Cdp from 'chrome-remote-interface'
-import { log, removeFromDeadPixels } from '../utils'
+import { log, deleteFromTable } from '../utils'
 
 const LOAD_TIMEOUT = 1000 * 30
 
@@ -47,7 +47,7 @@ export default (async function firePixelHandler (event) {
   await client.close()
   log('Web socket connection closed.')
 
-  removeFromDeadPixels(event)
+  deleteFromTable(event)
   // log('firePixelHandler result:', JSON.stringify(requestsMade, null, ' '))
 
   return {

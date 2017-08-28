@@ -43,19 +43,49 @@ export function generateError (event, msg) {
     return new PixelFailsToFireError(msg, JSON.stringify(event, null, '  '));
 }
 
-export function removeFromDeadPixels (event) {
+export function deleteFromTable (event, name = config.dynamoDBTableName) {
     var AWS = require('aws-sdk');
     var documentClient = new AWS.DynamoDB.DocumentClient();
 
     var params = {
-        TableName: config.dynamoDBTableName,
+        TableName: name,
         Key : {
             hid: event['hid']
         }
     };
 
     documentClient.delete(params, function(err, data) {
-        if (err) console.log(err);
+        if (err) throw new Error('Failed to delete from table: ' + err);
+        else console.log(data);
+    });
+}
+
+export function addToTable (event, name = config.dynamoDBTableName) {
+    var AWS = require('aws-sdk');
+    var documentClient = new AWS.DynamoDB.DocumentClient();
+
+    var item =
+        JSON.parse(
+            JSON.parse(
+                JSON.parse(
+                    event['Cause']
+                )['errorMessage']
+            )['data']
+        );
+
+    var params = {
+        TableName: name,
+        Item : {
+            hid: item['hid'],
+            sid: item['sid'],
+            transid: item['transid'],
+            url: item['url'],
+            userAgent: item['userAgent']
+        }
+    };
+
+    documentClient.put(params, function(err, data) {
+        if (err) throw new Error('Failed to add to table: ' + err);
         else console.log(data);
     });
 }

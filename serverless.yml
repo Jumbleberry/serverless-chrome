@@ -2,9 +2,20 @@ service: headless-chrome
 
 provider:
   name: aws
-  role: arn:aws:iam::649052894197:role/lambda_fire_pixel
   runtime: nodejs6.10
   region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:us-east-1:*:*"
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource: "arn:aws:logs:us-east-1:*:*"
   environment:
     CHROME_PATH: ./headless-chrome/headless_shell
 
@@ -13,17 +24,19 @@ custom:
 
 plugins:
   - serverless-webpack
-  - serverless-plugin-lambda-dead-letter
 
 functions:
-  fire-pixel:
+  firePixel:
     description: Fire pixel in headless chrome
+    # role: arn:aws:iam::649052894197:role/lambdaFirePixel
     memorySize: 1024
-    timeout: 5
-    handler: handler.run
-    # events:
-    #   - http:
-    #       method: post
-    #       path: pixels/fire
-    # deadLetter:
-    #   targetArn: arn:aws:sns:us-east-1:649052894197:DeadPixels
+    timeout: 10
+    handler: handler.firePixel
+  addDeadPixel:
+    description: Add dead pixel to DynamoDB table
+    # role: arn:aws:iam::649052894197:role/lambdaAddDeadPixel
+    handler: handler.addDeadPixel
+  postToSlack:
+    description: Post table changes to slack
+    # role: lambdaPostToSlack
+    handler: handler.postToSlack

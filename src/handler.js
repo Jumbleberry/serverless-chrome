@@ -1,9 +1,11 @@
 import config from './config'
 import { spawn as spawnChrome } from './chrome'
-import { log, generateError } from './utils'
+import { log, generateError, addToTable } from './utils'
+import firePixelHandler from './handlers/firePixel'
+import postToSlackHandler from './handlers/postToSlack'
 
 // eslint-disable-next-line import/prefer-default-export
-export async function run (event, context, callback, handler = config.handler) {
+export async function firePixel (event, context, callback) {
   var error = null
 
   try {
@@ -14,7 +16,7 @@ export async function run (event, context, callback, handler = config.handler) {
   }
 
   try {
-    await handler(event, context)
+    await firePixelHandler(event, context)
   } catch(err) {
     log('Error in handler:', err)
     error = generateError(event, 'Error in handler')
@@ -25,4 +27,24 @@ export async function run (event, context, callback, handler = config.handler) {
   } else {
     callback(null, 'Success')
   }
+}
+
+export function addDeadPixel (event, context, callback) {
+  try {
+    addToTable(event)
+  } catch(err) {
+    context.fail(error)
+  }
+
+  callback(null, 'Success')
+}
+
+export function postToSlack (event, context, callback) {
+  try {
+    postToSlackHandler(event)
+  } catch(err) {
+    context.fail(error)
+  }
+
+  callback(null, 'Success')
 }

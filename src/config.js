@@ -44,6 +44,11 @@ export default {
   // dynamo DB table name
   dynamoDBTableName: "DeadPixels",
 
+  // Slack integration
+  slackWebHookHost: "hooks.slack.com",
+  slackWebHookPath: "/services/T0YHCBV0Q/B6SPYKSA1/1FETcpWMzGdT6mswX06WJEu7",
+  slackWebHookChannel: "#dead-pixels",
+
   // this is a function which will get executed after chrome has spawned
   handler: firePixelHandler,
 
