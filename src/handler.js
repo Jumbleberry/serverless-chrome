@@ -18,8 +18,8 @@ export async function firePixel (event, context, callback) {
   try {
     await firePixelHandler(event, context)
   } catch(err) {
-    log('Error in handler:', err)
-    error = generateError(event, 'Error in handler')
+    log('Error in firing pixel:', err)
+    error = generateError(event, 'Error in firing pixel')
   }
 
   if (error) {

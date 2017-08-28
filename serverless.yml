@@ -25,6 +25,22 @@ custom:
 plugins:
   - serverless-webpack
 
+resources:
+  Resources:
+    DeadPixels:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: DeadPixels
+        AttributeDefinitions:
+          - AttributeName: hid
+            AttributeType: N
+        KeySchema:
+          - AttributeName: hid
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
 functions:
   firePixel:
     description: Fire pixel in headless chrome
