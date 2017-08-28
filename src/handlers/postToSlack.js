@@ -1,39 +1,49 @@
 import config from '../config'
 
 export default (function postToSlackHandler (event) {
-    const https = require('https');
+    var https = require('https');
+    var msg = 'Pixel with hid:' + event['hid'] + ' failed to fire.';
 
-    var msg = 'Pixel with hid:' + event['hid'] + ' can not be fired.'
-
-    const postData = querystring.stringify({
-      'channel': config.slackWebHookChannel,
-      'username': 'Angry Ian',
-      'text': msg,
-      'icon_emoji': ':scream:'
+    // form data
+    var postData = JSON.stringify({
+        channel: config.slackWebHookChannel,
+        username: 'Angry Ian',
+        text: msg,
+        icon_emoji: ':scream:'
     });
 
-    const options = {
-      hostname: config.slackWebHookHost,
-      port: 443,
-      path: config.slackWebHookPath,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': Buffer.byteLength(postData)
-      }
+    // request option
+    var options = {
+        host: config.slackWebHookHost,
+        port: 443,
+        method: 'POST',
+        path: config.slackWebHookPath,
+        headers: {
+            "Content-Type": "application/json",
+            "Content-Length": Buffer.byteLength(postData)
+        }
     };
 
-    const req = https.request(options, (res) => {
-      console.log('statusCode:', res.statusCode);
-      console.log('headers:', res.headers);
-
-      res.on('data', (d) => {
-        process.stdout.write(d);
+    // request object
+    var req = https.request(options, function (res) {
+      var result = '';
+      res.on('data', function (chunk) {
+        result += chunk;
       });
+      res.on('end', function () {
+        console.log(result);
+      });
+      res.on('error', function (err) {
+        console.log(err);
+      })
     });
 
-    req.on('error', (e) => {
-      throw new Error(e);
+    // req error
+    req.on('error', function (err) {
+      console.log(err);
     });
-    req.end()
+
+    //send request witht the postData form
+    req.write(postData);
+    req.end();
 })
