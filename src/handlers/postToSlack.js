@@ -1,4 +1,4 @@
-import config from './config'
+import config from '../config'
 
 export default (function postToSlackHandler (event) {
     const https = require('https');
@@ -33,7 +33,7 @@ export default (function postToSlackHandler (event) {
     });
 
     req.on('error', (e) => {
-      console.error(e);
+      throw new Error(e);
     });
     req.end()
 })
