@@ -2,7 +2,12 @@ import config from '../config'
 
 export default (function postToSlackHandler (event) {
     var https = require('https');
-    var msg = 'Pixel with hid:' + event['hid'] + ' failed to fire.';
+
+    var eventName = event['Records'][0]['eventName'];
+    var hid = event['Records'][0]['dynamodb']['NewImage']['hid']['N'];
+    if (eventName == 'INSERT') {
+        var msg = 'Pixel with hid:' + hid + ' failed to fire.';
+    }
 
     // form data
     var postData = JSON.stringify({
