@@ -27,7 +27,7 @@ plugins:
 
 resources:
   Resources:
-    DeadPixels:
+    DeadPixelsTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: DeadPixels
@@ -38,23 +38,29 @@ resources:
           - AttributeName: hid
             KeyType: HASH
         ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        StreamSpecification:
+          StreamViewType: "NEW_AND_OLD_IMAGES"
 
 functions:
   firePixel:
     description: Fire pixel in headless chrome
-    # role: arn:aws:iam::649052894197:role/lambdaFirePixel
     handler: handler.firePixel
     memorySize: 1024
     timeout: 10
   addDeadPixel:
     description: Add dead pixel to DynamoDB table
-    # role: arn:aws:iam::649052894197:role/lambdaAddDeadPixel
     handler: handler.addDeadPixel
-    timeout: 10
+    timeout: 5
   postToSlack:
     description: Post table changes to slack
-    # role: lambdaPostToSlack
     handler: handler.postToSlack
-    timeout: 10
+    timeout: 5
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - DeadPixelsTable
+              - StreamArn
