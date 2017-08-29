@@ -33,7 +33,7 @@ export function addDeadPixel (event, context, callback) {
   try {
     addToTable(event)
   } catch(err) {
-    context.fail(error)
+    context.fail(err)
   }
 
   callback(null, 'Success')
@@ -43,7 +43,7 @@ export function postToSlack (event, context, callback) {
   try {
     postToSlackHandler(event)
   } catch(err) {
-    context.fail(error)
+    context.fail(err)
   }
 
   callback(null, 'Success')
