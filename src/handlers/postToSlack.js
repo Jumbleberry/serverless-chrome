@@ -18,13 +18,13 @@ export default (function postToSlackHandler (event) {
         var iconEmoji = null;
 
         if (eventName == 'INSERT') {
+            hid = data.NewImage.hid.N;
             msg = 'Pixel with hid: `' + hid + '` failed to fire.';
-            hid = data['NewImage']['hid']['N'];
             userName = 'Angry Bot';
             iconEmoji = ':rage:';
         } else if (eventName == 'REMOVE') {
+            hid = data.OldImage.hid.N;
             msg = 'Pixel with hid: `' + hid + '` has been successfully fired!';
-            hid = data['OldImage']['hid']['N'];
             userName = 'Happy Bot';
             iconEmoji = ':stuck_out_tongue_winking_eye:';
         }
