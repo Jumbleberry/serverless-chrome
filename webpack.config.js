@@ -42,7 +42,6 @@ module.exports = {
   },
   externals: ['aws-sdk'],
   plugins: [
-    new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.optimize.DedupePlugin(),
     // new webpack.optimize.UglifyJsPlugin({ minimize: true, sourceMap: false, warnings: false }),
     new ExtractTarballPlugin(chromeTarball, webpackDir),

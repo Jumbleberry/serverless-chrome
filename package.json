@@ -39,14 +39,13 @@
     "chrome-remote-interface": "^0.22.0",
     "got": "^6.7.1",
     "ps-node": "^0.1.6",
-    "serverless-plugin-lambda-dead-letter": "^1.2.1",
     "uuid": "^3.0.1"
   },
   "devDependencies": {
     "ava": "^0.19.1",
     "babel-core": "^6.26.0",
     "babel-eslint": "^7.2.3",
-    "babel-loader": "^7.1.1",
+    "babel-loader": "7.1.1",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.23.0",
     "babel-preset-env": "^1.4.0",
