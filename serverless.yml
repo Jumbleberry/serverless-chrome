@@ -16,8 +16,6 @@ provider:
         - logs:CreateLogStream
         - logs:PutLogEvents
       Resource: "arn:aws:logs:us-east-1:*:*"
-  environment:
-    CHROME_PATH: ./headless-chrome/headless_shell
 
 custom:
   webpackIncludeModules: false # disable auto including modules
@@ -49,6 +47,8 @@ functions:
     handler: handler.firePixel
     memorySize: 1024
     timeout: 10
+    environment:
+      CHROME_PATH: ./headless-chrome/headless_shell
   addDeadPixel:
     description: Add dead pixel to DynamoDB table
     handler: handler.addDeadPixel
