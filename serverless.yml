@@ -52,15 +52,6 @@ stepFunctions:
         - http:
             path: pixel/fire
             method: POST
-            request:
-              template:
-                application/json:
-                  Fn::Join:
-                    - ''
-                    - - "#set( $body = $util.escapeJavaScript($input.json('$')) ) \n\n"
-                      - "{\"input\": \"$body\",\"stateMachineArn\":\""
-                      - Ref: pixelMachineGun
-                      - "\"}"
       definition:
         Comment: "Fire pixel in headless chrome"
         StartAt: Wait
