@@ -43,11 +43,11 @@ resources:
           WriteCapacityUnits: 5
         StreamSpecification:
           StreamViewType: "NEW_AND_OLD_IMAGES"
-    Outputs:
-      pixelMachineGun:
-        Description: The ARN of the state machine
-        Value:
-          Ref: pixelMachineGun
+    # Outputs:
+    #   pixelMachineGun:
+    #     Description: The ARN of the state machine
+    #     Value:
+    #       Ref: pixelMachineGun
 
 stepFunctions:
   stateMachines:
@@ -74,6 +74,7 @@ stepFunctions:
               IntervalSeconds: 1
               MaxAttempts: 2
               BackoffRate: 2
+            Catch:
             - ErrorEquals:
               - States.ALL
               Next: AddDeadPixel
