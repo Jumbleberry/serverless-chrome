@@ -68,7 +68,8 @@
     "serverless": "^1.21.0",
     "serverless-webpack": "^1.0.0-rc.4",
     "tap-xunit": "^1.7.0",
-    "webpack": "^3.5.5"
+    "webpack": "^3.5.5",
+    "serverless-step-functions": "^1.1.0"
   },
   "ava": {
     "require": "babel-register",

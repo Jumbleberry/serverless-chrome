@@ -1,4 +1,4 @@
-service: headless-chrome
+service: pixel-machine-gun
 
 provider:
   name: aws
@@ -9,19 +9,21 @@ provider:
       Action:
         - dynamodb:PutItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:us-east-1:*:*"
+      Resource: "arn:aws:dynamodb:${opt:region}:*:*"
     - Effect: Allow
       Action:
         - logs:CreateLogGroup
         - logs:CreateLogStream
         - logs:PutLogEvents
-      Resource: "arn:aws:logs:us-east-1:*:*"
+      Resource: "arn:aws:logs:${opt:region}:*:*"
 
 custom:
+  accountId: 649052894197,
   webpackIncludeModules: false # disable auto including modules
 
 plugins:
   - serverless-webpack
+  - serverless-step-functions
 
 resources:
   Resources:
@@ -40,6 +42,45 @@ resources:
           WriteCapacityUnits: 5
         StreamSpecification:
           StreamViewType: "NEW_AND_OLD_IMAGES"
+    Outputs:
+      pixelMachineGun:
+        Description: The ARN of the state machine
+        Value:
+          Ref: pixelMachineGun
+
+stepFunctions:
+  stateMachines:
+    pixelMachineGun:
+      name: pixelMachineGun
+      events:
+        - http:
+            path: pixel/fire
+            method: POST
+      definition:
+        Comment: "Fire pixel in headless chrome"
+        StartAt: Wait
+        States:
+          Wait:
+            Type: Wait
+            Seconds: 1
+            Next: FirePixel
+          FirePixel:
+            Type: Task
+            Resource: arn:aws:lambda:${opt:region}:${self:custom.accountId}:function:${self:service}-${opt:stage}-firePixel
+            Retry:
+            - ErrorEquals:
+              - PixelFailsToFireError
+              IntervalSeconds: 1
+              MaxAttempts: 2
+              BackoffRate: 2
+            - ErrorEquals:
+              - States.ALL
+              Next: AddDeadPixel
+            End: true
+          AddDeadPixel:
+            Type: Task
+            Resource: arn:aws:lambda:${opt:region}:${self:custom.accountId}:function:${self:service}-${opt:stage}-addDeadPixel
+            End: true
 
 functions:
   firePixel:
