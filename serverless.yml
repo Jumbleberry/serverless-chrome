@@ -2,6 +2,7 @@ service: pixel-machine-gun
 
 provider:
   name: aws
+  stage: beta
   runtime: nodejs6.10
   region: us-east-1
   iamRoleStatements:
@@ -9,13 +10,13 @@ provider:
       Action:
         - dynamodb:PutItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${opt:region}:*:*"
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:*"
     - Effect: Allow
       Action:
         - logs:CreateLogGroup
         - logs:CreateLogStream
         - logs:PutLogEvents
-      Resource: "arn:aws:logs:${opt:region}:*:*"
+      Resource: "arn:aws:logs:${self:provider.region}:*:*"
 
 custom:
   accountId: 649052894197,
@@ -66,7 +67,7 @@ stepFunctions:
             Next: FirePixel
           FirePixel:
             Type: Task
-            Resource: arn:aws:lambda:${opt:region}:${self:custom.accountId}:function:${self:service}-${opt:stage}-firePixel
+            Resource: arn:aws:lambda:${self:provider.region}:${self:custom.accountId}:function:${self:service}-${self:provider.stage}-firePixel
             Retry:
             - ErrorEquals:
               - PixelFailsToFireError
@@ -79,7 +80,7 @@ stepFunctions:
             End: true
           AddDeadPixel:
             Type: Task
-            Resource: arn:aws:lambda:${opt:region}:${self:custom.accountId}:function:${self:service}-${opt:stage}-addDeadPixel
+            Resource: arn:aws:lambda:${self:provider.region}:${self:custom.accountId}:function:${self:service}-${self:provider.stage}-addDeadPixel
             End: true
 
 functions:
