@@ -84,7 +84,7 @@ functions:
     description: Fire pixel in headless chrome
     handler: handler.firePixel
     memorySize: 1024
-    timeout: 10
+    timeout: 30
     environment:
       CHROME_PATH: ./headless-chrome/headless_shell
   addDeadPixel:
