@@ -48,7 +48,7 @@ export default (async function firePixelHandler (event) {
   log('Web socket connection closed.')
 
   deleteFromTable(event)
-  // log('firePixelHandler result:', JSON.stringify(requestsMade, null, ' '))
+  log('Requests made by headless chrome:', JSON.stringify(requestsMade, null, ' '))
 
   return {
     statusCode: 200,
