@@ -1,17 +1,26 @@
 import Cdp from 'chrome-remote-interface'
 import { log, deleteFromTable } from '../utils'
 
-const LOAD_TIMEOUT = 1000 * 30
+const LOAD_TIMEOUT = 1000 * 20
 
 export default (async function firePixelHandler (event) {
   const requestsMade = []
+  const requestIds = []
+  const responsesReceived = []
 
   const [tab] = await Cdp.List()
   const client = await Cdp({ host: '127.0.0.1', target: tab })
 
   const { Network, Page } = client
 
-  Network.requestWillBeSent(params => requestsMade.push(params))
+  Network.requestWillBeSent(params => {
+    requestsMade.push(params)
+    requestIds.push(params.requestId)
+  })
+  Network.responseReceived(params => {
+    responsesReceived.push(params)
+    requestIds.splice( requestIds.indexOf(params.requestId), 1 )
+  })
 
   const loadEventFired = Page.loadEventFired()
 
@@ -40,7 +49,12 @@ export default (async function firePixelHandler (event) {
     })
   })
 
-  log('Page is loaded.')
+  if (requestIds.length == 0) {
+    log('Page is loaded.')
+  } else {
+    log('Events didn\'t received response: ', JSON.stringify(requestIds, null, ' '))
+    throw new Error('Page is not fully loaded')
+  }
 
   // It's important that we close the web socket connection,
   // or our Lambda function will not exit properly
@@ -49,6 +63,7 @@ export default (async function firePixelHandler (event) {
 
   deleteFromTable(event)
   log('Requests made by headless chrome:', JSON.stringify(requestsMade, null, ' '))
+  log('Responses received by headless chrome:', JSON.stringify(responsesReceived, null, ' '))
 
   return {
     statusCode: 200,
