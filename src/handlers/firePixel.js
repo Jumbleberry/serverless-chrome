@@ -1,14 +1,15 @@
 import Cdp from 'chrome-remote-interface'
-import { log, deleteFromTable } from '../utils'
+import { log, deleteFromTable, generateError } from '../utils'
 
 const LOAD_TIMEOUT = 1000 * 20
+const requestsMade = []
+const requestIds = []
+const responsesReceived = []
+var mainPixelFired = false
 
-export default (async function firePixelHandler (event) {
-  const requestsMade = []
-  const requestIds = []
-  const responsesReceived = []
-  var mainPixelFired = false
+export default (async function firePixelHandler (event, context) {
   var exitTimeout = false
+  var customeError = generateError(event, 'Error in firing pixel')
 
   const [tab] = await Cdp.List()
   const client = await Cdp({ host: '127.0.0.1', target: tab })
@@ -31,7 +32,8 @@ export default (async function firePixelHandler (event) {
         mainPixelFired = true
       } else {
         mainPixelFired = false
-        throw new Error('Main pixel failed to fire!')
+        log('Main pixel failed to fire')
+        context.fail(customeError)
       }
     }
     if (requestIds.length == 0) {
@@ -39,10 +41,10 @@ export default (async function firePixelHandler (event) {
       exitTimeout = setTimeout(
         async () => {
          try {
-          await cleanUpAndExit(client, event, requestIds, requestsMade, responsesReceived, mainPixelFired)
+          await cleanUpAndExit(client, event, customeError)
          } catch (err) {
           log(err)
-          throw new Error('Error in cleaning up and exiting')
+          context.fail(customeError)
          }
        }, 1000)
     }
@@ -57,7 +59,8 @@ export default (async function firePixelHandler (event) {
     await Page.navigate({ url: event['url'] })
     log('Navigating to ', event['url'])
   } catch(err) {
-    throw new Error(err)
+    log(err)
+    context.fail(customeError)
   }
 
   // wait until page is done loading, or timeout
@@ -75,7 +78,7 @@ export default (async function firePixelHandler (event) {
   })
 })
 
-async function cleanUpAndExit(client, event, requestIds, requestsMade, responsesReceived, mainPixelFired) {
+async function cleanUpAndExit(client, event, customeError) {
   if (requestIds.length == 0) {
     log('Page is loaded.')
   } else {
@@ -92,7 +95,8 @@ async function cleanUpAndExit(client, event, requestIds, requestsMade, responses
   log('Web socket connection closed.')
 
   if (mainPixelFired == false) {
-    throw new Error('Main pixel not fired!')
+    log('Main pixel not fired!')
+    context.fail(customeError)
   }
 
   deleteFromTable(event)
