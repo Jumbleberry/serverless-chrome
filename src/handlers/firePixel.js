@@ -7,6 +7,7 @@ export default (async function firePixelHandler (event) {
   const requestsMade = []
   const requestIds = []
   const responsesReceived = []
+  var mainPixelFired = false
 
   const [tab] = await Cdp.List()
   const client = await Cdp({ host: '127.0.0.1', target: tab })
@@ -20,6 +21,14 @@ export default (async function firePixelHandler (event) {
   Network.responseReceived(params => {
     responsesReceived.push(params)
     requestIds.splice( requestIds.indexOf(params.requestId), 1 )
+    if (mainPixelFired == false && params.response.url == event['url']) {
+      if (params.response.status == 200) {
+        mainPixelFired = true
+      } else {
+        mainPixelFired = false
+        throw new Error('Main pixel failed to fire!')
+      }
+    }
   })
 
   const loadEventFired = Page.loadEventFired()
@@ -29,7 +38,6 @@ export default (async function firePixelHandler (event) {
     await Network.enable()
     await Page.enable()
     await Page.navigate({ url: event['url'] })
-
     log('Navigating to ', event['url'])
   } catch(err) {
     throw new Error(err)
@@ -52,8 +60,8 @@ export default (async function firePixelHandler (event) {
   if (requestIds.length == 0) {
     log('Page is loaded.')
   } else {
+    log('Page is not fully loaded')
     log('Events didn\'t received response: ', JSON.stringify(requestIds, null, ' '))
-    throw new Error('Page is not fully loaded')
   }
 
   // It's important that we close the web socket connection,
@@ -65,13 +73,7 @@ export default (async function firePixelHandler (event) {
   log('Requests made by headless chrome:', JSON.stringify(requestsMade, null, ' '))
   log('Responses received by headless chrome:', JSON.stringify(responsesReceived, null, ' '))
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      requestsMade,
-    }),
-    headers: {
-      'Content-Type': 'application/json',
-    },
+  if (mainPixelFired == false) {
+    throw new Error('Main pixel not fired!')
   }
 })
