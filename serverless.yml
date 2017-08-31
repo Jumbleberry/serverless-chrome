@@ -83,7 +83,7 @@ functions:
   firePixel:
     description: Fire pixel in headless chrome
     handler: handler.firePixel
-    memorySize: 256
+    memorySize: 512
     timeout: 30
     environment:
       CHROME_PATH: ./headless-chrome/headless_shell
