@@ -8,6 +8,7 @@ export default (async function firePixelHandler (event) {
   const requestIds = []
   const responsesReceived = []
   var mainPixelFired = false
+  var exitTimeout = false
 
   const [tab] = await Cdp.List()
   const client = await Cdp({ host: '127.0.0.1', target: tab })
@@ -17,6 +18,10 @@ export default (async function firePixelHandler (event) {
   Network.requestWillBeSent(params => {
     requestsMade.push(params)
     requestIds.push(params.requestId)
+    if (exitTimeout != false) {
+      log('Clear timeout for clean up and exit')
+      clearTimeout(exitTimeout)
+    }
   })
   Network.responseReceived(params => {
     responsesReceived.push(params)
@@ -28,6 +33,18 @@ export default (async function firePixelHandler (event) {
         mainPixelFired = false
         throw new Error('Main pixel failed to fire!')
       }
+    }
+    if (requestIds.length == 0) {
+      log('Set timeout to clean up and exit')
+      exitTimeout = setTimeout(
+        async () => {
+         try {
+          await cleanUpAndExit(client, event, requestIds, requestsMade, responsesReceived, mainPixelFired)
+         } catch (err) {
+          log(err)
+          throw new Error('Error in cleaning up and exiting')
+         }
+       }, 1000)
     }
   })
 
@@ -56,7 +73,9 @@ export default (async function firePixelHandler (event) {
       resolve()
     })
   })
+})
 
+async function cleanUpAndExit(client, event, requestIds, requestsMade, responsesReceived, mainPixelFired) {
   if (requestIds.length == 0) {
     log('Page is loaded.')
   } else {
@@ -64,16 +83,17 @@ export default (async function firePixelHandler (event) {
     log('Events didn\'t received response: ', JSON.stringify(requestIds, null, ' '))
   }
 
+  log('Requests made by headless chrome:', JSON.stringify(requestsMade, null, ' '))
+  log('Responses received by headless chrome:', JSON.stringify(responsesReceived, null, ' '))
+
   // It's important that we close the web socket connection,
   // or our Lambda function will not exit properly
   await client.close()
   log('Web socket connection closed.')
 
-  deleteFromTable(event)
-  log('Requests made by headless chrome:', JSON.stringify(requestsMade, null, ' '))
-  log('Responses received by headless chrome:', JSON.stringify(responsesReceived, null, ' '))
-
   if (mainPixelFired == false) {
     throw new Error('Main pixel not fired!')
   }
-})
+
+  deleteFromTable(event)
+}
