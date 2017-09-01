@@ -113,17 +113,8 @@ async function cleanUpAndExit(client, event, context, customeError) {
 }
 
 function isSameURL(urlOne, urlTwo) {
-  if (urlOne == urlTwo) {
+  if (urlOne == urlTwo || urlOne == urlTwo + '/' || urlOne + '/' == urlTwo) {
     return true
   }
-
-  if (urlOne == urlTwo + '/') {
-    return true
-  }
-
-  if (urlOne + '/' == urlTwo) {
-    return true
-  }
-
   return false
 }
