@@ -29,7 +29,7 @@ export default (async function firePixelHandler (event, context) {
     log('Receiving new response from ' + params.response.url + '...')
     responsesReceived.push(params)
     requestIds.splice( requestIds.indexOf(params.requestId), 1 )
-    if (params.response.url == event['url']) {
+    if (isSameURL(params.response.url, event['url'])) {
       if (params.response.status == 200) {
         log('Main pixel fired!')
         mainPixelFired = true
@@ -101,4 +101,20 @@ async function cleanUpAndExit(client, event, context, customeError) {
 
   log('Main pixel fired. Deleting from DynamoDB if it exists...')
   deleteFromTable(event)
+}
+
+function isSameURL(urlOne, urlTwo) {
+  if (urlOne == urlTwo) {
+    return true
+  }
+
+  if (urlOne == urlTwo + '/') {
+    return true
+  }
+
+  if (urlOne + '/' == urlTwo) {
+    return true
+  }
+
+  return false
 }
