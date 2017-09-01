@@ -29,12 +29,13 @@ export default (async function firePixelHandler (event, context) {
     log('Receiving new response from ' + params.response.url + '...')
     responsesReceived.push(params)
     requestIds.splice( requestIds.indexOf(params.requestId), 1 )
-    if (mainPixelFired == false && params.response.url == event['url']) {
+    if (params.response.url == event['url']) {
       if (params.response.status == 200) {
+        log('Main pixel fired!')
         mainPixelFired = true
       } else {
         mainPixelFired = false
-        log('Main pixel failed to fire')
+        log('Main pixel failed to fire :(')
         await cleanUpAndExit(client, event, context, customeError)
         context.fail(customeError)
       }
@@ -94,8 +95,8 @@ async function cleanUpAndExit(client, event, context, customeError) {
   log('Web socket connection closed.')
 
   if (mainPixelFired == false) {
-    log('Main pixel not fired!')
-    context.fail(customeError)
+    log('Main pixel did not fire :(')
+    return context.fail(customeError)
   }
 
   log('Main pixel fired. Deleting from DynamoDB if it exists...')
