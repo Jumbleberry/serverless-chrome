@@ -1,8 +1,9 @@
-service: pixel-machine-gun
+service: OneShot
 
 provider:
   name: aws
-  stage: beta
+  stage: prod
+  profile: prod
   runtime: nodejs6.10
   region: us-east-1
   iamRoleStatements:
@@ -19,7 +20,7 @@ provider:
       Resource: "arn:aws:logs:${self:provider.region}:*:*"
 
 custom:
-  accountId: 649052894197
+  accountId: 492011584541
   webpackIncludeModules: false # disable auto including modules
 
 plugins:
@@ -58,7 +59,7 @@ stepFunctions:
         States:
           Wait:
             Type: Wait
-            Seconds: 1
+            Seconds: 60
             Next: FirePixel
           FirePixel:
             Type: Task
