@@ -90,7 +90,7 @@ export function addToTable (event, name = config.dynamoDBTableName) {
     var params = {
         TableName: name,
         Item : {
-            hid: 'UNKNOWN'
+            hid: 'UNKNOWN-' + Date.now()
         }
     }
   }
