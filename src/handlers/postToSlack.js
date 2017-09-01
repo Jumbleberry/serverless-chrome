@@ -19,7 +19,11 @@ export default (function postToSlackHandler (event) {
 
         if (eventName == 'INSERT') {
             hid = data.NewImage.hid.S;
-            msg = 'Pixel with hid: `' + hid + '` failed to fire.';
+            if (hid.startsWith('UNKNOWN-')) {
+                msg = 'Uh oh, headless chrome timed out while firing pixel. Time stamp: `' + hid.substring(8) + '`'
+            } else {
+                msg = 'Pixel with hid: `' + hid + '` failed to fire.';
+            }
             userName = 'Angry Bot';
             iconEmoji = ':rage:';
         } else if (eventName == 'REMOVE') {
