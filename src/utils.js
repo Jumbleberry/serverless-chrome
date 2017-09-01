@@ -64,6 +64,7 @@ export function addToTable (event, name = config.dynamoDBTableName) {
     var AWS = require('aws-sdk');
     var documentClient = new AWS.DynamoDB.DocumentClient();
 
+  try {
     var item =
         JSON.parse(
             JSON.parse(
@@ -82,7 +83,17 @@ export function addToTable (event, name = config.dynamoDBTableName) {
             url: item['url'],
             userAgent: item['userAgent']
         }
-    };
+    }
+  }
+  catch(err) {
+    log('Error in getting data: ', err)
+    var params = {
+        TableName: name,
+        Item : {
+            hid: 'UNKNOWN'
+        }
+    }
+  }
 
     documentClient.put(params, function(err, data) {
         if (err) throw new Error('Failed to add to table: ' + err);
