@@ -1,7 +1,9 @@
 import Cdp from 'chrome-remote-interface'
 import { log, deleteFromTable, generateError } from '../utils'
 
-const LOAD_TIMEOUT = 1000 * 20
+const LOAD_TIMEOUT = 1000 * 5
+const GLOBAL_LOAD_TIMEOUT = 1000 * 25
+const WAIT_FOR_NEW_REQUEST = 1000 * 1
 const requestsMade = []
 const requestIds = []
 const responsesReceived = []
@@ -18,6 +20,13 @@ export default (async function firePixelHandler (event, context) {
 
   Network.requestWillBeSent(params => {
     log('Preparing new request to ' + params.request.url + '...')
+    if (requestsMade.length == 0) {
+      log('First request, setting global exit timeout...')
+      setTimeout(
+        async () => {
+          await cleanUpAndExit(client, event, context, customeError)
+       }, GLOBAL_LOAD_TIMEOUT)
+    }
     requestsMade.push(params)
     requestIds.push(params.requestId)
     if (exitTimeout != false) {
@@ -45,7 +54,7 @@ export default (async function firePixelHandler (event, context) {
       exitTimeout = setTimeout(
         async () => {
           await cleanUpAndExit(client, event, context, customeError)
-       }, 1000)
+       }, WAIT_FOR_NEW_REQUEST)
     }
   })
 
@@ -95,7 +104,7 @@ async function cleanUpAndExit(client, event, context, customeError) {
   log('Web socket connection closed.')
 
   if (mainPixelFired == false) {
-    log('Main pixel did not fire :(')
+    throw new Error('Main pixel did not fire :(')
     return context.fail(customeError)
   }
 

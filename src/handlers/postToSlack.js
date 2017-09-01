@@ -20,7 +20,7 @@ export default (function postToSlackHandler (event) {
         if (eventName == 'INSERT') {
             hid = data.NewImage.hid.S;
             if (hid.startsWith('UNKNOWN-')) {
-                msg = 'Uh oh, headless chrome timed out while firing pixel. Time stamp: `' + hid.substring(8) + '`'
+                msg = 'Uh oh, no data available about this event. We only know time stamp: `' + hid.substring(8) + '`'
             } else {
                 msg = 'Pixel with hid: `' + hid + '` failed to fire.';
             }
