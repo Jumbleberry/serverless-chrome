@@ -17,6 +17,7 @@ export default (async function firePixelHandler (event, context) {
   const { Network, Page } = client
 
   Network.requestWillBeSent(params => {
+    log('Preparing new request to ' + params.request.url + '...')
     requestsMade.push(params)
     requestIds.push(params.requestId)
     if (exitTimeout != false) {
@@ -24,7 +25,8 @@ export default (async function firePixelHandler (event, context) {
       clearTimeout(exitTimeout)
     }
   })
-  Network.responseReceived(params => {
+  Network.responseReceived(async (params) => {
+    log('Receiving new response from ' + params.response.url + '...')
     responsesReceived.push(params)
     requestIds.splice( requestIds.indexOf(params.requestId), 1 )
     if (mainPixelFired == false && params.response.url == event['url']) {
@@ -33,6 +35,7 @@ export default (async function firePixelHandler (event, context) {
       } else {
         mainPixelFired = false
         log('Main pixel failed to fire')
+        await cleanUpAndExit(client, event, context, customeError)
         context.fail(customeError)
       }
     }
@@ -40,12 +43,7 @@ export default (async function firePixelHandler (event, context) {
       log('Set timeout to clean up and exit')
       exitTimeout = setTimeout(
         async () => {
-         try {
-          await cleanUpAndExit(client, event, customeError)
-         } catch (err) {
-          log(err)
-          context.fail(customeError)
-         }
+          await cleanUpAndExit(client, event, context, customeError)
        }, 1000)
     }
   })
@@ -59,7 +57,8 @@ export default (async function firePixelHandler (event, context) {
     await Page.navigate({ url: event['url'] })
     log('Navigating to ', event['url'])
   } catch(err) {
-    log(err)
+    log('Error in enabling network and page, navigating to URL: ', err)
+    await cleanUpAndExit(client, event, context, customeError)
     context.fail(customeError)
   }
 
@@ -78,7 +77,7 @@ export default (async function firePixelHandler (event, context) {
   })
 })
 
-async function cleanUpAndExit(client, event, customeError) {
+async function cleanUpAndExit(client, event, context, customeError) {
   if (requestIds.length == 0) {
     log('Page is loaded.')
   } else {
@@ -99,5 +98,6 @@ async function cleanUpAndExit(client, event, customeError) {
     context.fail(customeError)
   }
 
+  log('Main pixel fired. Deleting from DynamoDB if it exists...')
   deleteFromTable(event)
 }
