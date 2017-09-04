@@ -1,5 +1,5 @@
 import Cdp from 'chrome-remote-interface'
-import { spawn as spawnChrome } from '../chrome'
+import { spawn as spawnChrome, kill as killChrome } from '../chrome'
 import { log, deleteFromTable, generateError } from '../utils'
 
 const LOAD_TIMEOUT = 1000 * 5
@@ -7,10 +7,9 @@ const GLOBAL_LOAD_TIMEOUT = 1000 * 25
 const WAIT_FOR_NEW_REQUEST = 1000 * 1
 
 const requestsMade = []
-const requestIds = []
+const requestIds = {}
 const responsesReceived = []
 
-var chrome = null
 var client = null
 var mainPixelFired = false
 var globalExitTimeout = false
@@ -25,7 +24,7 @@ export async function firePixelHandler(e, c, cb) {
   context = c
   callback = cb
 
-  chrome = await spawnChrome()
+  await spawnChrome()
   const [tab] = await Cdp.List()
   client = await Cdp({ host: '127.0.0.1', target: tab })
 
@@ -38,7 +37,7 @@ export async function firePixelHandler(e, c, cb) {
   Network.requestWillBeSent(params => {
     log('Preparing new request to ' + params.request.url + '...')
     requestsMade.push(params)
-    requestIds.push(params.requestId)
+    requestIds[params.requestId] = true
     if (mainPixelRequestId === null) {
       mainPixelRequestId = params.requestId
     }
@@ -48,7 +47,7 @@ export async function firePixelHandler(e, c, cb) {
   Network.responseReceived(params => {
     log('Receiving new response from ' + params.response.url + '...')
     responsesReceived.push(params)
-    requestIds.splice( requestIds.indexOf(params.requestId), 1 )
+    delete requestIds[params.requestId]
 
     if (mainPixelRequestId == params.requestId) {
       if (params.response.status == 200) {
@@ -60,8 +59,8 @@ export async function firePixelHandler(e, c, cb) {
         cleanUpAndExit()
       }
     }
-
-    if (requestIds.length == 0) {
+    log('Request Ids: ', requestIds)
+    if (Object.keys(requestIds).length == 0) {
       log('Set timeout to clean up and exit')
       exitTimeout = setTimeout(cleanUpAndExit, WAIT_FOR_NEW_REQUEST)
     }
@@ -105,8 +104,13 @@ export async function cleanUpAndExit(error = null) {
 
   // It's important that we close the web socket connection,
   // or our Lambda function will not exit properly
-  !client || (await client.close() && log('Web socket connection closed.'))
-  !chrome || (await chrome.kill() && log('Chrome instance killed.'))
+  if (client != null) {
+   await client.close()
+   log('Web socket connection closed.')
+  }
+
+  await killChrome()
+  log('Chrome killed.')
 
   if (error === null && mainPixelFired === true) {
     log('Main pixel fired. Deleting from DynamoDB if it exists...')
