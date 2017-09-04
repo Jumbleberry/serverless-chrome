@@ -3,7 +3,7 @@ import { spawn as spawnChrome } from '../chrome'
 import { log, deleteFromTable, generateError } from '../utils'
 
 const LOAD_TIMEOUT = 1000 * 5
-const GLOBAL_LOAD_TIMEOUT = 1000 * 15
+const GLOBAL_LOAD_TIMEOUT = 1000 * 25
 const WAIT_FOR_NEW_REQUEST = 1000 * 1
 
 const requestsMade = []
@@ -30,7 +30,6 @@ export async function firePixelHandler(e, c, cb) {
   client = await Cdp({ host: '127.0.0.1', target: tab })
 
   const { Network, Page } = client
-  let mainPixelURL = null
   let mainPixelRequestId = null
 
   log('Set global time out to exit')
