@@ -55,7 +55,7 @@ export function deleteFromTable (event, name = config.dynamoDBTableName) {
     };
 
     documentClient.delete(params, function(err, data) {
-        if (err) throw new Error('Failed to delete from table: ' + err);
+        if (err) console.log(err);
         else console.log(data);
     });
 }
