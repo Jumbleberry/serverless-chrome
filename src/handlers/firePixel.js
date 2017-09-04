@@ -6,9 +6,9 @@ const LOAD_TIMEOUT = 1000 * 5
 const GLOBAL_LOAD_TIMEOUT = 1000 * 25
 const WAIT_FOR_NEW_REQUEST = 1000 * 1
 
-const requestsMade = []
-const requestIds = {}
-const responsesReceived = []
+var requestsMade = []
+var requestIds = {}
+var responsesReceived = []
 
 var client = null
 var mainPixelFired = false
@@ -20,6 +20,10 @@ var context = null
 var callback = null
 
 export async function firePixelHandler(e, c, cb) {
+  requestsMade = []
+  requestIds = {}
+  responsesReceived = []
+
   event = e
   context = c
   callback = cb
@@ -116,11 +120,11 @@ export async function cleanUpAndExit(error = null) {
     log('Main pixel fired. Deleting from DynamoDB if it exists...')
     deleteFromTable(event)
     context.succeed('Success')
-    callback(null, 'success')
+    // callback(null, 'success')
   } else {
     log('Main pixel did not fire :(')
     let customError = generateError(event, 'Error in firing pixel.')
     context.fail(customError)
-    callback(customError)
+    // callback(customError)
   }
 }
