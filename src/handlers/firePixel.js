@@ -9,24 +9,30 @@ const requestIds = []
 const responsesReceived = []
 var mainPixelFired = false
 
-export default (async function firePixelHandler (event, context) {
+var event = null
+var context = null
+var customeError = null
+var client = null
+
+export default (async function firePixelHandler (e, c) {
   var exitTimeout = false
-  var customeError = generateError(event, 'Error in firing pixel')
+  event = e
+  context = c
+  customeError = generateError(event, 'Error in firing pixel')
 
   const [tab] = await Cdp.List()
-  const client = await Cdp({ host: '127.0.0.1', target: tab })
+  client = await Cdp({ host: '127.0.0.1', target: tab })
 
   const { Network, Page } = client
 
+  setTimeout(() => {
+    cleanUpAndExit.catch((err) => {
+      throw new Error('Error in cleaning up and exiting')
+    })
+  }, GLOBAL_LOAD_TIMEOUT)
+
   Network.requestWillBeSent(params => {
     log('Preparing new request to ' + params.request.url + '...')
-    if (requestsMade.length == 0) {
-      log('First request, setting global exit timeout...')
-      setTimeout(
-        async () => {
-          await cleanUpAndExit(client, event, context, customeError)
-       }, GLOBAL_LOAD_TIMEOUT)
-    }
     requestsMade.push(params)
     requestIds.push(params.requestId)
     if (exitTimeout != false) {
@@ -34,7 +40,7 @@ export default (async function firePixelHandler (event, context) {
       clearTimeout(exitTimeout)
     }
   })
-  Network.responseReceived(async (params) => {
+  Network.responseReceived(params => {
     log('Receiving new response from ' + params.response.url + '...')
     responsesReceived.push(params)
     requestIds.splice( requestIds.indexOf(params.requestId), 1 )
@@ -45,16 +51,13 @@ export default (async function firePixelHandler (event, context) {
       } else {
         mainPixelFired = false
         log('Main pixel failed to fire :(')
-        await cleanUpAndExit(client, event, context, customeError)
+        cleanUpAndExit()
         context.fail(customeError)
       }
     }
     if (requestIds.length == 0) {
       log('Set timeout to clean up and exit')
-      exitTimeout = setTimeout(
-        async () => {
-          await cleanUpAndExit(client, event, context, customeError)
-       }, WAIT_FOR_NEW_REQUEST)
+      exitTimeout = setTimeout(cleanUpAndExit, WAIT_FOR_NEW_REQUEST)
     }
   })
 
@@ -68,7 +71,7 @@ export default (async function firePixelHandler (event, context) {
     log('Navigating to ', event['url'])
   } catch(err) {
     log('Error in enabling network and page, navigating to URL: ', err)
-    await cleanUpAndExit(client, event, context, customeError)
+    cleanUpAndExit()
     context.fail(customeError)
   }
 
@@ -87,7 +90,7 @@ export default (async function firePixelHandler (event, context) {
   })
 })
 
-async function cleanUpAndExit(client, event, context, customeError) {
+async function cleanUpAndExit() {
   if (requestIds.length == 0) {
     log('Page is loaded.')
   } else {
@@ -104,8 +107,8 @@ async function cleanUpAndExit(client, event, context, customeError) {
   log('Web socket connection closed.')
 
   if (mainPixelFired == false) {
+    context.fail(customeError)
     throw new Error('Main pixel did not fire :(')
-    return context.fail(customeError)
   }
 
   log('Main pixel fired. Deleting from DynamoDB if it exists...')
