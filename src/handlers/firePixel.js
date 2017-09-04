@@ -30,6 +30,8 @@ export async function firePixelHandler(e, c, cb) {
   client = await Cdp({ host: '127.0.0.1', target: tab })
 
   const { Network, Page } = client
+  let mainPixelURL = null
+  let mainPixelRequestId = null
 
   log('Set global time out to exit')
   globalExitTimeout = setTimeout(cleanUpAndExit, GLOBAL_LOAD_TIMEOUT)
@@ -38,6 +40,9 @@ export async function firePixelHandler(e, c, cb) {
     log('Preparing new request to ' + params.request.url + '...')
     requestsMade.push(params)
     requestIds.push(params.requestId)
+    if (mainPixelRequestId === null) {
+      mainPixelRequestId = params.requestId
+    }
     clearTimeout(exitTimeout)
   })
 
@@ -46,7 +51,7 @@ export async function firePixelHandler(e, c, cb) {
     responsesReceived.push(params)
     requestIds.splice( requestIds.indexOf(params.requestId), 1 )
 
-    if (isSameURL(params.response.url, event['url'])) {
+    if (mainPixelRequestId == params.requestId) {
       if (params.response.status == 200) {
         log('Main pixel fired!')
         mainPixelFired = true
@@ -115,11 +120,4 @@ export async function cleanUpAndExit(error = null) {
     context.fail(customError)
     callback(customError)
   }
-}
-
-function isSameURL(urlOne, urlTwo) {
-  if (urlOne == urlTwo || urlOne == urlTwo + '/' || urlOne + '/' == urlTwo) {
-    return true
-  }
-  return false
 }
