@@ -20,13 +20,17 @@ var context = null
 var callback = null
 
 export async function firePixelHandler(e, c, cb) {
+  event = e
+  context = c
+  callback = cb
+
   requestsMade = []
   requestIds = {}
   responsesReceived = []
 
-  event = e
-  context = c
-  callback = cb
+  mainPixelFired = false
+  globalExitTimeout = false
+  exitTimeout = false
 
   await spawnChrome()
   const [tab] = await Cdp.List()
