@@ -95,8 +95,8 @@ export function addToTable (event, name = config.dynamoDBTableName) {
     }
   }
 
-    documentClient.put(params, function(err, data) {
-        if (err) throw new Error('Failed to add to table: ' + err);
-        else console.log(data);
-    });
+  documentClient.put(params, function(err, data) {
+      if (err) console.log(err);
+      else console.log(data);
+  });
 }
