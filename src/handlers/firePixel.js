@@ -77,7 +77,7 @@ export async function firePixelHandler(e, c, cb) {
   const loadEventFired = Page.loadEventFired()
 
   try {
-    await Network.setUserAgentOverride({ userAgent: event['userAgent'] })
+    await Network.setUserAgentOverride({ userAgent: event['useragent'] })
     await Network.enable()
     await Page.enable()
     await Page.navigate({ url: event['url'] })
