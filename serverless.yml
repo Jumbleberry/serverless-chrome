@@ -91,12 +91,12 @@ functions:
   addDeadPixel:
     description: Add dead pixel to DynamoDB table
     handler: handler.addDeadPixel
-    memorySize: 256
+    memorySize: 128
     timeout: 5
   postToSlack:
     description: Post table changes to slack
     handler: handler.postToSlack
-    memorySize: 256
+    memorySize: 128
     timeout: 5
     events:
       - stream:
