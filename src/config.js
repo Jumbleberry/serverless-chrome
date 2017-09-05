@@ -44,6 +44,12 @@ export default {
   // dynamo DB table name
   dynamoDBTableName: "DeadPixels",
 
+  // Datadog metric
+  datadogInvocationMetricName: "jbx.hydra.oneshot.invocation.count",
+  datadogInvocationMetricType: "count",
+  datadogPixelMetricName: "jbx.hydra.oneshot.pixel.count",
+  datadogPixelMetricType: "count",
+
   // Slack integration
   slackWebHookHost: "hooks.slack.com",
   slackWebHookPath: "/services/T0YHCBV0Q/B6SPYKSA1/1FETcpWMzGdT6mswX06WJEu7",

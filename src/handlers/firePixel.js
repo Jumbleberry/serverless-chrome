@@ -1,4 +1,5 @@
 import Cdp from 'chrome-remote-interface'
+import config from '../config'
 import { spawn as spawnChrome, kill as killChrome } from '../chrome'
 import { log, deleteFromTable, generateError } from '../utils'
 
@@ -31,6 +32,12 @@ export async function firePixelHandler(e, c, cb) {
   mainPixelFired = false
   globalExitTimeout = false
   exitTimeout = false
+
+  let unix_epoch_timestamp = Math.floor(Date.now() / 1000);
+  let metric_value = 1;
+  let metric_type = config.datadogInvocationMetricType;
+  let metric_name = config.datadogInvocationMetricName;
+  log(`MONITORING|${unix_epoch_timestamp}|${metric_value}|${metric_type}|${metric_name}`)
 
   await spawnChrome()
   const [tab] = await Cdp.List()
@@ -123,12 +130,16 @@ export async function cleanUpAndExit(error = null) {
   if (error === null && mainPixelFired === true) {
     log('Main pixel fired. Deleting from DynamoDB if it exists...')
     deleteFromTable(event)
+    let unix_epoch_timestamp = Math.floor(Date.now() / 1000);
+    let metric_value = 1;
+    let metric_type = config.datadogPixelMetricType;
+    let metric_name = config.datadogPixelMetricName;
+    let tag_list = `campaign:${event['sid']},transid:${event['transid']}`;
+    log(`MONITORING|${unix_epoch_timestamp}|${metric_value}|${metric_type}|${metric_name}|#${tag_list}`)
     context.succeed('Success')
-    // callback(null, 'success')
   } else {
     log('Main pixel did not fire :(')
     let customError = generateError(event, 'Error in firing pixel.')
     context.fail(customError)
-    // callback(customError)
   }
 }
