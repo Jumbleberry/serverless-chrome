@@ -28,7 +28,7 @@ export default (function postToSlackHandler (event) {
                 ids = id.split("-");
                 hid = ids[0];
                 sid = ids[1];
-                msg = `Pixel with hid: ${hid} and sid: ${sid} failed to fire.`;
+                msg = `Pixel with hid: \`${hid}\` and sid: \`${sid}\` failed to fire.`;
             }
             userName = 'Angry Bot';
             iconEmoji = ':rage:';
@@ -37,7 +37,7 @@ export default (function postToSlackHandler (event) {
             ids = id.split("-");
             hid = ids[0];
             sid = ids[1];
-            msg = `Pixel with hid: ${hid} and sid: ${sid} has been successfully fired!`;
+            msg = `Pixel with hid: \`${hid}\` and sid: \`${sid}\` has been successfully fired!`;
             userName = 'Happy Bot';
             iconEmoji = ':stuck_out_tongue_winking_eye:';
         }
