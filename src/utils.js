@@ -82,7 +82,7 @@ export function addToTable (event, name = config.dynamoDBTableName) {
             sid: item['sid'],
             transid: item['transid'],
             url: item['url'],
-            userAgent: item['useragent']
+            useragent: item['useragent']
         }
     }
   }

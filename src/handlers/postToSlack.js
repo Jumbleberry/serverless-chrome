@@ -82,7 +82,7 @@ export default (function postToSlackHandler (event) {
           console.log(err);
         });
 
-        //send request witht the postData form
+        //send request with the postData form
         req.write(postData);
         req.end();
     });
