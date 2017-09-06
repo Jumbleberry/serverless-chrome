@@ -77,7 +77,7 @@ export function addToTable (event, name = config.dynamoDBTableName) {
     var params = {
         TableName: name,
         Item : {
-            id: event['hid'] + '-' + event['sid'],
+            id: item['hid'] + '-' + item['sid'],
             hid: item['hid'],
             sid: item['sid'],
             transid: item['transid'],
