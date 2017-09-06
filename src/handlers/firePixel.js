@@ -86,6 +86,7 @@ export async function firePixelHandler(e, c, cb) {
   try {
     await Network.setUserAgentOverride({ userAgent: event['useragent'] })
     await Network.enable()
+    await Network.clearBrowserCookies()
     await Page.enable()
     await Page.navigate({ url: event['url'] })
     log('Navigating to ', event['url'])
