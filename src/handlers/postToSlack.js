@@ -14,6 +14,7 @@ export default (function postToSlackHandler (event) {
 
         var msg = null;
         var id = null;
+        var ids = null;
         var hid = null;
         var sid = null;
         var userName = null;
