@@ -13,22 +13,30 @@ export default (function postToSlackHandler (event) {
         log('Dynamodb Record: %j', data)
 
         var msg = null;
+        var id = null;
         var hid = null;
+        var sid = null;
         var userName = null;
         var iconEmoji = null;
 
         if (eventName == 'INSERT') {
-            hid = data.NewImage.hid.S;
-            if (hid.startsWith('UNKNOWN-')) {
-                msg = 'Uh oh, no data available about this event. We only know time stamp: `' + hid.substring(8) + '`'
+            id = data.NewImage.id.S;
+            if (id.startsWith('UNKNOWN-')) {
+                msg = 'Uh oh, no data available about this event. We only know time stamp: `' + id.substring(8) + '`'
             } else {
-                msg = 'Pixel with hid: `' + hid + '` failed to fire.';
+                ids = id.split("-");
+                hid = ids[0];
+                sid = ids[1];
+                msg = `Pixel with hid: ${hid} and sid: ${sid} failed to fire.`;
             }
             userName = 'Angry Bot';
             iconEmoji = ':rage:';
         } else if (eventName == 'REMOVE') {
-            hid = data.OldImage.hid.S;
-            msg = 'Pixel with hid: `' + hid + '` has been successfully fired!';
+            id = data.OldImage.id.S;
+            ids = id.split("-");
+            hid = ids[0];
+            sid = ids[1];
+            msg = `Pixel with hid: ${hid} and sid: ${sid} has been successfully fired!`;
             userName = 'Happy Bot';
             iconEmoji = ':stuck_out_tongue_winking_eye:';
         }

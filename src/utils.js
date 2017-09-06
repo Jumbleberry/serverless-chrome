@@ -50,7 +50,7 @@ export function deleteFromTable (event, name = config.dynamoDBTableName) {
     var params = {
         TableName: name,
         Key : {
-            hid: event['hid']
+            id: event['hid'] + '-' + event['sid']
         }
     };
 
@@ -77,6 +77,7 @@ export function addToTable (event, name = config.dynamoDBTableName) {
     var params = {
         TableName: name,
         Item : {
+            id: event['hid'] + '-' + event['sid'],
             hid: item['hid'],
             sid: item['sid'],
             transid: item['transid'],
@@ -90,7 +91,7 @@ export function addToTable (event, name = config.dynamoDBTableName) {
     var params = {
         TableName: name,
         Item : {
-            hid: 'UNKNOWN-' + Date.now()
+            id: 'UNKNOWN-' + Date.now()
         }
     }
   }
