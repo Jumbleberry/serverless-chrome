@@ -6,13 +6,6 @@ provider:
   profile: prod
   runtime: nodejs6.10
   region: us-east-1
-  vpc:
-    securityGroupIds:
-      - sg-856734f5
-      - sg-c37a29b3
-    subnetIds:
-      - subnet-aabbe486
-      - subnet-2eebf666
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -24,9 +17,6 @@ provider:
         - logs:CreateLogGroup
         - logs:CreateLogStream
         - logs:PutLogEvents
-        - ec2:CreateNetworkInterface
-        - ec2:DescribeNetworkInterfaces
-        - ec2:DeleteNetworkInterface
       Resource: "arn:aws:logs:${self:provider.region}:*:*"
 
 custom:
