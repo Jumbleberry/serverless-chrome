@@ -8,7 +8,9 @@ export async function firePixel (event, context, callback) {
   try {
     await firePixelHandler(event, context, callback)
   } catch(err) {
-    cleanUpAndExit('error in firePixel')
+    log('Error in firePixel: ', err)
+    log('cleaning up and exiting...')
+    cleanUpAndExit(err)
   }
 }
 

@@ -3,9 +3,10 @@ import config from '../config'
 import { spawn as spawnChrome, kill as killChrome } from '../chrome'
 import { log, deleteFromTable, generateError } from '../utils'
 
-const LOAD_TIMEOUT = 1000 * 5
+const LOAD_TIMEOUT = 1000 * 15
 const GLOBAL_LOAD_TIMEOUT = 1000 * 25
 const WAIT_FOR_NEW_REQUEST = 1000 * 1
+const PAGE_TIMEOUT_ERROR = 'Page load timed out'
 
 var requestsMade = []
 var requestIds = {}
@@ -87,10 +88,10 @@ export async function firePixelHandler(e, c, cb) {
     await Network.setUserAgentOverride({ userAgent: event['useragent'] })
     await Network.enable()
     await Network.clearBrowserCookies()
-    if (event['cookies'] !== undefined) {
-      log('Setting cookies...', event['cookies'])
-      await Network.setCookies(event['cookies'])
-    }
+    // if (event['cookies'] !== undefined) {
+    //   log('Setting cookies...', event['cookies'])
+    //   await Network.setCookies(event['cookies'])
+    // }
     await Page.enable()
     await Page.navigate({ url: event['url'] })
     log('Navigating to ', event['url'])
@@ -104,7 +105,7 @@ export async function firePixelHandler(e, c, cb) {
     const timeout = setTimeout(
       reject,
       LOAD_TIMEOUT,
-      new Error(`Page load timed out after ${LOAD_TIMEOUT} ms.`)
+      new Error(PAGE_TIMEOUT_ERROR)
     )
 
     loadEventFired.then(async () => {
@@ -131,6 +132,14 @@ export async function cleanUpAndExit(error = null) {
 
   await killChrome()
   log('Chrome killed.')
+
+  // Treat page timeout error as normal error
+  if (error == 'Error: ' + PAGE_TIMEOUT_ERROR) {
+    error = null;
+  }
+
+  log('Error: ', error)
+  log('mainPixelFired: ', mainPixelFired)
 
   if (error === null && mainPixelFired === true) {
     log('Main pixel fired. Deleting from DynamoDB if it exists...')
