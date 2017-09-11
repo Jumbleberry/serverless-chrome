@@ -34,11 +34,11 @@ export async function firePixelHandler(e, c, cb) {
   globalExitTimeout = false
   exitTimeout = false
 
-  let unix_epoch_timestamp = Math.floor(Date.now() / 1000);
-  let metric_value = 1;
-  let metric_type = config.datadogInvocationMetricType;
-  let metric_name = config.datadogInvocationMetricName;
-  log(`MONITORING|${unix_epoch_timestamp}|${metric_value}|${metric_type}|${metric_name}`)
+  // let unix_epoch_timestamp = Math.floor(Date.now() / 1000);
+  // let metric_value = 1;
+  // let metric_type = config.datadogInvocationMetricType;
+  // let metric_name = config.datadogInvocationMetricName;
+  // log(`MONITORING|${unix_epoch_timestamp}|${metric_value}|${metric_type}|${metric_name}`)
 
   await spawnChrome()
   const [tab] = await Cdp.List()
@@ -144,12 +144,12 @@ export async function cleanUpAndExit(error = null) {
   if (error === null && mainPixelFired === true) {
     log('Main pixel fired. Deleting from DynamoDB if it exists...')
     deleteFromTable(event)
-    let unix_epoch_timestamp = Math.floor(Date.now() / 1000);
-    let metric_value = 1;
-    let metric_type = config.datadogPixelMetricType;
-    let metric_name = config.datadogPixelMetricName;
-    let tag_list = `campaign:${event['sid']},transid:${event['transid']}`;
-    log(`MONITORING|${unix_epoch_timestamp}|${metric_value}|${metric_type}|${metric_name}|#${tag_list}`)
+    // let unix_epoch_timestamp = Math.floor(Date.now() / 1000);
+    // let metric_value = 1;
+    // let metric_type = config.datadogPixelMetricType;
+    // let metric_name = config.datadogPixelMetricName;
+    // let tag_list = `campaign:${event['sid']},transid:${event['transid']}`;
+    // log(`MONITORING|${unix_epoch_timestamp}|${metric_value}|${metric_type}|${metric_name}|#${tag_list}`)
     context.succeed('Success')
   } else {
     log('Main pixel did not fire :(')
