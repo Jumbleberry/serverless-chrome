@@ -89,8 +89,10 @@ export async function firePixelHandler(e, c, cb) {
     await Network.enable()
     await Network.clearBrowserCookies()
     if (event['cookies'] !== undefined) {
-      log('Setting cookies...', event['cookies'])
-      await Network.setCookies(event['cookies'])
+      event['cookies'].forEach(cookie => {
+        log('Setting cookie...', cookie)
+        await Network.setCookie(cookie)
+      });
     }
     await Page.enable()
     await Page.navigate({ url: event['url'] })
