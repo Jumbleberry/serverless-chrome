@@ -67,7 +67,7 @@ stepFunctions:
             Retry:
             - ErrorEquals:
               - PixelFailsToFireError
-              IntervalSeconds: $.retrydelay
+              IntervalSeconds: 1
               MaxAttempts: 2
               BackoffRate: 2
             Catch:
