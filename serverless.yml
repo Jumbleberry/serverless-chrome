@@ -59,7 +59,7 @@ stepFunctions:
         States:
           Wait:
             Type: Wait
-            TimestampPath: $.expirydate
+            SecondsPath: $.startdelay
             Next: FirePixel
           FirePixel:
             Type: Task
@@ -67,7 +67,7 @@ stepFunctions:
             Retry:
             - ErrorEquals:
               - PixelFailsToFireError
-              IntervalSeconds: 1
+              IntervalSeconds: $.retrydelay
               MaxAttempts: 2
               BackoffRate: 2
             Catch:
