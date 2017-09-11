@@ -59,7 +59,7 @@ stepFunctions:
         States:
           Wait:
             Type: Wait
-            Seconds: 60
+            TimestampPath: $.expirydate
             Next: FirePixel
           FirePixel:
             Type: Task
