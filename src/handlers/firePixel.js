@@ -85,9 +85,9 @@ export async function firePixelHandler(e, c, cb) {
   const loadEventFired = Page.loadEventFired()
 
   try {
-    await Network.setUserAgentOverride({ userAgent: event['useragent'] })
     await Network.enable()
-    await Network.setCacheDisabled(true)
+    await Network.setUserAgentOverride({ userAgent: event['useragent'] })
+    await Network.setCacheDisabled({ cacheDisabled: true })
     await Network.clearBrowserCookies()
     if (event['cookies'] !== undefined) {
       event['cookies'].forEach( async (cookie) => {
@@ -96,13 +96,13 @@ export async function firePixelHandler(e, c, cb) {
       });
     }
     if (event['headers'] !== undefined) {
-      await Network.setExtraHTTPHeaders(event['headers'])
+      await Network.setExtraHTTPHeaders({ headers: event['headers'] })
     }
     await Page.enable()
     await Page.navigate({ url: event['url'] })
     log('Navigating to ', event['url'])
   } catch(err) {
-    log('Error in enabling network and page, navigating to URL: ', err)
+    log('Error in setting up Network and Page: ', err)
     cleanUpAndExit()
   }
 
