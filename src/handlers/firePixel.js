@@ -95,6 +95,9 @@ export async function firePixelHandler(e, c, cb) {
         await Network.setCookie(cookie)
       });
     }
+    if (event['headers'] !== undefined) {
+      await Network.setExtraHTTPHeaders(event['headers'])
+    }
     await Page.enable()
     await Page.navigate({ url: event['url'] })
     log('Navigating to ', event['url'])
