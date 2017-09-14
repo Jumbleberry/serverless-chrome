@@ -87,6 +87,7 @@ export async function firePixelHandler(e, c, cb) {
   try {
     await Network.setUserAgentOverride({ userAgent: event['useragent'] })
     await Network.enable()
+    await Network.setCacheDisabled(true)
     await Network.clearBrowserCookies()
     if (event['cookies'] !== undefined) {
       event['cookies'].forEach( async (cookie) => {
