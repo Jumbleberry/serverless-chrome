@@ -66,12 +66,12 @@ export async function firePixelHandler(e, c, cb) {
     delete requestIds[params.requestId]
 
     if (mainPixelRequestId == params.requestId) {
-      if (params.response.status == 200) {
+      if (isHTTPStatusSuccess(params.response.status)) {
         log('Main pixel fired!')
         mainPixelFired = true
       } else {
         mainPixelFired = false
-        log('Main pixel failed to fire :(')
+        log('Main pixel failed to fire :( The response code was ' + params.response.status)
         cleanUpAndExit()
       }
     }
@@ -162,4 +162,8 @@ export async function cleanUpAndExit(error = null) {
     let customError = generateError(event, 'Error in firing pixel.')
     context.fail(customError)
   }
+}
+
+function isHTTPStatusSuccess(httpStatusCode) {
+  return 200 <= httpStatusCode && httpStatusCode <= 299
 }
