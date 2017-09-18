@@ -43,7 +43,7 @@ export function generateError (event, msg) {
     return new PixelFailsToFireError(msg, JSON.stringify(event, null, '  '));
 }
 
-export function deleteFromTable (event, name = config.dynamoDBTableName) {
+export async function deleteFromTable (event, name = config.dynamoDBTableName) {
     var AWS = require('aws-sdk');
     var documentClient = new AWS.DynamoDB.DocumentClient();
 
@@ -54,15 +54,17 @@ export function deleteFromTable (event, name = config.dynamoDBTableName) {
         }
     };
 
-    documentClient.delete(params, function(err, data) {
-        if (err) console.log(err);
-        else console.log(data);
+    var deleteObjectPromise = documentClient.delete(params).promise();
+    deleteObjectPromise.then( data => {
+      log('Successfully deleting from DynamoDB table.')
+    }).catch( err => {
+      log('Failed to delete from DynamoDB table, error: ', err)
     });
 }
 
-export function addToTable (event, name = config.dynamoDBTableName) {
-    var AWS = require('aws-sdk');
-    var documentClient = new AWS.DynamoDB.DocumentClient();
+export async function addToTable (event, name = config.dynamoDBTableName) {
+  var AWS = require('aws-sdk');
+  var documentClient = new AWS.DynamoDB.DocumentClient();
 
   try {
     var item =
@@ -97,8 +99,10 @@ export function addToTable (event, name = config.dynamoDBTableName) {
     }
   }
 
-  documentClient.put(params, function(err, data) {
-      if (err) console.log(err);
-      else console.log(data);
+  var putObjectPromise = documentClient.put(params).promise();
+  putObjectPromise.then( data => {
+    log('Successfully adding to DynamoDB table.')
+  }).catch( err => {
+    log('Failed to add to DynamoDB table, error: ', err)
   });
 }
