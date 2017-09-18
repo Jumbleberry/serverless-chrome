@@ -29,7 +29,7 @@ export function addDeadPixel (event, context, callback) {
 export function postToSlack (event, context, callback) {
   log('******************* START POST TO SLACK *******************');
   try {
-    postToSlackHandler(event)
+    postToSlackHandler(event, context, callback)
   } catch(err) {
     context.fail(err)
   }
