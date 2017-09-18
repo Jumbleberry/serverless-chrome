@@ -1,7 +1,7 @@
 import config from '../config'
 import { log } from '../utils'
 
-export default (function postToSlackHandler (event) {
+export default (function postToSlackHandler (event, context, callback) {
     var https = require('https');
 
     event.Records.forEach(record => {
@@ -73,13 +73,13 @@ export default (function postToSlackHandler (event) {
             console.log(result);
           });
           res.on('error', function (err) {
-            console.log(err);
+            console.error(err);
           })
         });
 
         // req error
         req.on('error', function (err) {
-          console.log(err);
+          console.error(err);
         });
 
         //send request with the postData form
@@ -87,5 +87,5 @@ export default (function postToSlackHandler (event) {
         req.end();
     });
 
-    log("Successfully processed " + event.Records.length + " records.");
+    callback(null, `Successfully processed ${event.Records.length} records.`);
 })
