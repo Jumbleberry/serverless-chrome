@@ -43,29 +43,31 @@ export function generateError (event, msg) {
     return new PixelFailsToFireError(msg, JSON.stringify(event, null, '  '));
 }
 
-export function deleteFromTable (event, name = config.dynamoDBTableName) {
-    var AWS = require('aws-sdk');
-    var documentClient = new AWS.DynamoDB.DocumentClient();
+export async function deleteFromTable (event, name = config.dynamoDBTableName) {
+    let AWS = require('aws-sdk');
+    let documentClient = new AWS.DynamoDB.DocumentClient();
 
-    var params = {
+    let params = {
         TableName: name,
         Key : {
             id: event['hid'] + '-' + event['sid']
         }
     };
 
-    documentClient.delete(params, function(err, data) {
-        if (err) console.log(err);
-        else console.log(data);
+    let deleteObjectPromise = documentClient.delete(params).promise();
+    deleteObjectPromise.then( data => {
+      log('Successfully deleting from DynamoDB table.')
+    }).catch( err => {
+      log('Failed to delete from DynamoDB table, error: ', err)
     });
 }
 
-export function addToTable (event, name = config.dynamoDBTableName) {
-    var AWS = require('aws-sdk');
-    var documentClient = new AWS.DynamoDB.DocumentClient();
+export async function addToTable (event, name = config.dynamoDBTableName) {
+  let AWS = require('aws-sdk');
+  let documentClient = new AWS.DynamoDB.DocumentClient();
 
   try {
-    var item =
+    let item =
         JSON.parse(
             JSON.parse(
                 JSON.parse(
@@ -74,7 +76,7 @@ export function addToTable (event, name = config.dynamoDBTableName) {
             )['data']
         );
 
-    var params = {
+    let params = {
         TableName: name,
         Item : {
             id: item['hid'] + '-' + item['sid'],
@@ -89,7 +91,7 @@ export function addToTable (event, name = config.dynamoDBTableName) {
   }
   catch(err) {
     log('Error in getting data: ', err)
-    var params = {
+    let params = {
         TableName: name,
         Item : {
             id: 'UNKNOWN-' + Date.now()
@@ -97,8 +99,10 @@ export function addToTable (event, name = config.dynamoDBTableName) {
     }
   }
 
-  documentClient.put(params, function(err, data) {
-      if (err) console.log(err);
-      else console.log(data);
+  let putObjectPromise = documentClient.put(params).promise();
+  putObjectPromise.then( data => {
+    log('Successfully adding to DynamoDB table.')
+  }).catch( err => {
+    log('Failed to add to DynamoDB table, error: ', err)
   });
 }

@@ -15,10 +15,10 @@ export async function firePixel (event, context, callback) {
   }
 }
 
-export function addDeadPixel (event, context, callback) {
+export async function addDeadPixel (event, context, callback) {
   log('******************* START ADD DEAD PIXEL *******************');
   try {
-    addToTable(event)
+    await addToTable(event)
   } catch(err) {
     context.fail(err)
   }

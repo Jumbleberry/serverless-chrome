@@ -144,7 +144,7 @@ export async function cleanUpAndExit(error = null) {
 
   if (error === null && mainPixelFired === true) {
     log('==================== Main pixel fired. Deleting from DynamoDB if it exists... ====================')
-    deleteFromTable(event)
+    await deleteFromTable(event)
     // let unix_epoch_timestamp = Math.floor(Date.now() / 1000);
     // let metric_value = 1;
     // let metric_type = config.datadogPixelMetricType;
