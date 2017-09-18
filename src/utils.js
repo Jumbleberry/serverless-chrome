@@ -44,17 +44,17 @@ export function generateError (event, msg) {
 }
 
 export async function deleteFromTable (event, name = config.dynamoDBTableName) {
-    let AWS = require('aws-sdk');
-    let documentClient = new AWS.DynamoDB.DocumentClient();
+    var AWS = require('aws-sdk');
+    var documentClient = new AWS.DynamoDB.DocumentClient();
 
-    let params = {
+    var params = {
         TableName: name,
         Key : {
             id: event['hid'] + '-' + event['sid']
         }
     };
 
-    let deleteObjectPromise = documentClient.delete(params).promise();
+    var deleteObjectPromise = documentClient.delete(params).promise();
     deleteObjectPromise.then( data => {
       log('Successfully deleting from DynamoDB table.')
     }).catch( err => {
@@ -63,11 +63,11 @@ export async function deleteFromTable (event, name = config.dynamoDBTableName) {
 }
 
 export async function addToTable (event, name = config.dynamoDBTableName) {
-  let AWS = require('aws-sdk');
-  let documentClient = new AWS.DynamoDB.DocumentClient();
+  var AWS = require('aws-sdk');
+  var documentClient = new AWS.DynamoDB.DocumentClient();
 
   try {
-    let item =
+    var item =
         JSON.parse(
             JSON.parse(
                 JSON.parse(
@@ -76,7 +76,7 @@ export async function addToTable (event, name = config.dynamoDBTableName) {
             )['data']
         );
 
-    let params = {
+    var params = {
         TableName: name,
         Item : {
             id: item['hid'] + '-' + item['sid'],
@@ -91,7 +91,7 @@ export async function addToTable (event, name = config.dynamoDBTableName) {
   }
   catch(err) {
     log('Error in getting data: ', err)
-    let params = {
+    var params = {
         TableName: name,
         Item : {
             id: 'UNKNOWN-' + Date.now()
@@ -99,7 +99,7 @@ export async function addToTable (event, name = config.dynamoDBTableName) {
     }
   }
 
-  let putObjectPromise = documentClient.put(params).promise();
+  var putObjectPromise = documentClient.put(params).promise();
   putObjectPromise.then( data => {
     log('Successfully adding to DynamoDB table.')
   }).catch( err => {
