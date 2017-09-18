@@ -85,7 +85,7 @@ export async function firePixelHandler(e, c, cb) {
       });
     }
     if (event['headers'] !== undefined) {
-      log('Setting headers...', headers)
+      log('Setting headers...', event['headers'])
       await Network.setExtraHTTPHeaders({ headers: event['headers'] })
     }
     await Page.enable()
