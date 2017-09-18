@@ -187,8 +187,8 @@ function initVariables(e, c, cb) {
   finished = false
   mainPixelRequestId = null
   mainPixelFired = false
-  globalExitTimeout = clearTimeout(false)
-  exitTimeout = clearTimeout(false)
+  globalExitTimeout = clearTimeout(globalExitTimeout)
+  exitTimeout = clearTimeout(exitTimeout)
 }
 
 function isHTTPStatusSuccess(httpStatusCode) {
