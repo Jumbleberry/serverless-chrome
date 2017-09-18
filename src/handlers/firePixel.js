@@ -57,11 +57,11 @@ export async function firePixelHandler(e, c, cb) {
 
     if (mainPixelRequestId == params.requestId) {
       if (isHTTPStatusSuccess(params.response.status)) {
-        log('Main pixel fired!')
+        log('==================== Main pixel fired! ====================')
         mainPixelFired = true
       } else {
         mainPixelFired = false
-        log('Main pixel failed to fire :( The response code was ' + params.response.status)
+        log('==================== Main pixel failed to fire :( The response code was ' + params.response.status + ' ====================')
         cleanUpAndExit()
       }
     }
@@ -116,9 +116,13 @@ export async function cleanUpAndExit(error = null) {
   clearTimeout(exitTimeout)
   clearTimeout(globalExitTimeout)
 
-  log('Requests made:', JSON.stringify(requestsMade, null, ' '))
-  log('Responses received:', JSON.stringify(responsesReceived, null, ' '))
-  log('Requests still waiting: ', JSON.stringify(requestIds, null, ' '))
+  log('*** Requests made:', JSON.stringify(requestsMade, null, ' '))
+  log('*** Responses received:', JSON.stringify(responsesReceived, null, ' '))
+  if (Object.keys(requestIds).length === 0 && requestIds.constructor === Object) {
+    log('*** All requests have been processed and received.')
+  } else {
+    log('*** Requests still waiting: ', JSON.stringify(requestIds, null, ' '))
+  }
 
   // It's important that we close the web socket connection,
   // or our Lambda function will not exit properly
@@ -139,7 +143,7 @@ export async function cleanUpAndExit(error = null) {
   log('mainPixelFired: ', mainPixelFired)
 
   if (error === null && mainPixelFired === true) {
-    log('Main pixel fired. Deleting from DynamoDB if it exists...')
+    log('==================== Main pixel fired. Deleting from DynamoDB if it exists... ====================')
     deleteFromTable(event)
     // let unix_epoch_timestamp = Math.floor(Date.now() / 1000);
     // let metric_value = 1;
@@ -149,7 +153,7 @@ export async function cleanUpAndExit(error = null) {
     // log(`MONITORING|${unix_epoch_timestamp}|${metric_value}|${metric_type}|${metric_name}|#${tag_list}`)
     context.succeed('Success')
   } else {
-    log('Main pixel did not fire :(')
+    log('==================== Main pixel did not fire :( ====================')
     let customError = generateError(event, 'Error in firing pixel.')
     context.fail(customError)
   }
