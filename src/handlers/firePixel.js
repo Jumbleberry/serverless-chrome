@@ -138,10 +138,9 @@ export async function cleanUpAndExit(error = null) {
     // It's important that we close the web socket connection,
     // or our Lambda function will not exit properly
     if (client) {
-      const { Network, Page, Target } = client
+      const { Network, Page } = client
       await Network.disable()
       await Page.disable()
-      await Target.closeTarget({ targetId: tab.id })
       await CDP.Close(tab)
       log('Browser environment discarded')
     }
