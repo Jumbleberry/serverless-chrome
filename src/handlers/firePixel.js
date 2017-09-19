@@ -141,8 +141,8 @@ export async function cleanUpAndExit(error = null) {
       const { Network, Page, Target } = client
       await Network.disable()
       await Page.disable()
-      await Target.closeTarget({ targetId: tab.id })
-      await client.close(tab)
+      // await Target.closeTarget({ targetId: tab.id })
+      await client.close()
       log('Browser environment discarded')
     }
 
@@ -167,7 +167,7 @@ export async function cleanUpAndExit(error = null) {
         config.datadogPixelMetricType,
         config.datadogPixelMetricName,
         `campaign:${event['sid']},transid:${event['transid']}`);
-      
+
       context.succeed('Success')
     } else {
       log('==================== Main pixel did not fire :( ====================')
