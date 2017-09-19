@@ -3,7 +3,7 @@ service: OneShot
 provider:
   name: aws
   stage: staging
-  profile: default
+  profile: ${self:provider.stage}
   runtime: nodejs6.10
   region: us-east-1
   environment:
