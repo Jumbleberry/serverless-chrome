@@ -6,6 +6,8 @@ provider:
   profile: default
   runtime: nodejs6.10
   region: us-east-1
+  environment:
+    stage: ${self:provider.stage}
   iamRoleStatements:
     - Effect: Allow
       Action:

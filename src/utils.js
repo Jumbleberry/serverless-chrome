@@ -106,3 +106,17 @@ export async function addToTable (event, name = config.dynamoDBTableName) {
     log('Failed to add to DynamoDB table, error: ', err)
   });
 }
+
+export function feedDataDog (value, type, name, tags = null) {
+  // Only log production metric
+  log('Current deployment stage is ' + process.env.stage);
+  if (process.env.stage != 'prod' ) {
+    return;
+  }
+  let unix_epoch_timestamp = Math.floor(Date.now() / 1000);
+  let metric = `MONITORING|${unix_epoch_timestamp}|${value}|${type}|${name}`;
+  if (tag != null) {
+    metric += `|#${tags}`;
+  }
+  log(metric)
+}
