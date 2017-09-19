@@ -14,7 +14,6 @@ var responsesReceived = []
 
 var client = null
 var tab = null
-
 var mainPixelRequestId = null
 var mainPixelFired = false
 var globalExitTimeout = false
@@ -168,7 +167,7 @@ export async function cleanUpAndExit(error = null) {
         config.datadogPixelMetricType,
         config.datadogPixelMetricName,
         `campaign:${event['sid']},transid:${event['transid']}`);
-
+      
       context.succeed('Success')
     } else {
       log('==================== Main pixel did not fire :( ====================')
