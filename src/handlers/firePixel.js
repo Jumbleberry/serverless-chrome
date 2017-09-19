@@ -158,7 +158,7 @@ export async function cleanUpAndExit(error = null) {
     log('mainPixelFired: ', mainPixelFired)
 
     if (error === null && mainPixelFired === true) {
-      log('==================== Main pixel fired. Deleting from DynamoDB if it exists... ====================')
+      log('==================== Main pixel fired. Adding to backlog table FiredPixels and deleting from DeadPixels if it exists... ====================')
       await addFiredPixelToTable(event);
       await deleteFromTable(event, "DeadPixels");
 
