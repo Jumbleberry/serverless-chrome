@@ -2,10 +2,12 @@ service: OneShot
 
 provider:
   name: aws
-  stage: prod
-  profile: prod
+  stage: staging
+  profile: ${opt:stage, self:provider.stage}
   runtime: nodejs6.10
   region: us-east-1
+  environment:
+    stage: ${opt:stage, self:provider.stage}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -20,7 +22,10 @@ provider:
       Resource: "arn:aws:logs:${self:provider.region}:*:*"
 
 custom:
-  accountId: 492011584541
+  stage: "${opt:stage, self:provider.stage}"
+  accountId:
+    staging: 649052894197
+    prod: 492011584541
   webpackIncludeModules: false # disable auto including modules
 
 plugins:
@@ -63,7 +68,7 @@ stepFunctions:
             Next: FirePixel
           FirePixel:
             Type: Task
-            Resource: arn:aws:lambda:${self:provider.region}:${self:custom.accountId}:function:${self:service}-${self:provider.stage}-firePixel
+            Resource: arn:aws:lambda:${self:provider.region}:${self:custom.accountId.${self:custom.stage}}:function:${self:service}-${self:custom.stage}-firePixel
             Retry:
             - ErrorEquals:
               - PixelFailsToFireError
@@ -77,7 +82,7 @@ stepFunctions:
             End: true
           AddDeadPixel:
             Type: Task
-            Resource: arn:aws:lambda:${self:provider.region}:${self:custom.accountId}:function:${self:service}-${self:provider.stage}-addDeadPixel
+            Resource: arn:aws:lambda:${self:provider.region}:${self:custom.accountId.${self:custom.stage}}:function:${self:service}-${self:custom.stage}-addDeadPixel
             End: true
 
 functions:
