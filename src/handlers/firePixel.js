@@ -1,7 +1,7 @@
 import Cdp from 'chrome-remote-interface'
 import config from '../config'
 import { spawn as spawnChrome, kill as killChrome } from '../chrome'
-import { log, deleteFromTable, generateError, feedDataDog } from '../utils'
+import { log, deleteFromTable, addFiredPixelToTable, generateError, feedDataDog } from '../utils'
 
 const LOAD_TIMEOUT = 1000 * 15
 const GLOBAL_LOAD_TIMEOUT = 1000 * 25
@@ -160,7 +160,8 @@ export async function cleanUpAndExit(error = null) {
 
     if (error === null && mainPixelFired === true) {
       log('==================== Main pixel fired. Deleting from DynamoDB if it exists... ====================')
-      await deleteFromTable(event)
+      await addFiredPixelToTable(event);
+      await deleteFromTable(event, "DeadPixels");
 
       feedDataDog(
         1,
