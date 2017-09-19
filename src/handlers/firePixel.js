@@ -167,7 +167,7 @@ export async function cleanUpAndExit(error = null) {
         config.datadogPixelMetricType,
         config.datadogPixelMetricName,
         `campaign:${event['sid']},transid:${event['transid']}`);
-
+      
       context.succeed('Success')
     } else {
       log('==================== Main pixel did not fire :( ====================')
