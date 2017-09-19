@@ -147,9 +147,6 @@ export async function cleanUpAndExit(error = null) {
       log('Browser environment discarded')
     }
 
-    await killChrome()
-    log('Chrome killed.')
-
     // Make sure to clear out the event loop
     clearTimeout(exitTimeout)
     clearTimeout(globalExitTimeout)
