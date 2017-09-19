@@ -142,7 +142,7 @@ export async function cleanUpAndExit(error = null) {
       await Network.disable()
       await Page.disable()
       await Target.closeTarget({ targetId: tab.id })
-      await client.close(tab)
+      await CDP.Close(tab)
       log('Browser environment discarded')
     }
 
