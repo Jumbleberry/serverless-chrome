@@ -2,8 +2,8 @@ service: OneShot
 
 provider:
   name: aws
-  stage: prod
-  profile: prod
+  stage: staging
+  profile: default
   runtime: nodejs6.10
   region: us-east-1
   iamRoleStatements:
@@ -20,7 +20,7 @@ provider:
       Resource: "arn:aws:logs:${self:provider.region}:*:*"
 
 custom:
-  accountId: 492011584541
+  accountId: 649052894197
   webpackIncludeModules: false # disable auto including modules
 
 plugins:
