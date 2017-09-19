@@ -41,9 +41,6 @@ export default {
   // log some extra stuff. It'll show up in your CloudWatch logs
   logging: true,
 
-  // dynamo DB table name
-  dynamoDBTableName: "DeadPixels",
-
   // Datadog metric
   datadogInvocationMetricName: "jbx.hydra.oneshot.invocation.count",
   datadogInvocationMetricType: "count",

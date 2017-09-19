@@ -49,6 +49,19 @@ resources:
           WriteCapacityUnits: 5
         StreamSpecification:
           StreamViewType: "NEW_AND_OLD_IMAGES"
+    FiredPixelsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: FiredPixels
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
 
 stepFunctions:
   stateMachines:
@@ -92,7 +105,7 @@ functions:
     memorySize: 512
     timeout: 30
     environment:
-      CHROME_PATH: ./headless-chrome/headless_shell
+      CHROME_PATH: ./headless_shell
   addDeadPixel:
     description: Add dead pixel to DynamoDB table
     handler: handler.addDeadPixel

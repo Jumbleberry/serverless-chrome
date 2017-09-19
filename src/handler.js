@@ -1,5 +1,5 @@
 import config from './config'
-import { log, generateError, addToTable } from './utils'
+import { log, generateError, addDeadPixelToTable } from './utils'
 import { firePixelHandler, cleanUpAndExit } from './handlers/firePixel'
 import postToSlackHandler from './handlers/postToSlack'
 
@@ -18,7 +18,7 @@ export async function firePixel (event, context, callback) {
 export async function addDeadPixel (event, context, callback) {
   log('******************* START ADD DEAD PIXEL *******************');
   try {
-    await addToTable(event)
+    await addDeadPixelToTable(event)
   } catch(err) {
     context.fail(err)
   }

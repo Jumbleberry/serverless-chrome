@@ -43,7 +43,7 @@ export function generateError (event, msg) {
     return new PixelFailsToFireError(msg, JSON.stringify(event, null, '  '));
 }
 
-export async function deleteFromTable (event, name = config.dynamoDBTableName) {
+export async function deleteFromTable (event, name = "DeadPixels") {
     var AWS = require('aws-sdk');
     var documentClient = new AWS.DynamoDB.DocumentClient();
 
@@ -62,10 +62,35 @@ export async function deleteFromTable (event, name = config.dynamoDBTableName) {
     });
 }
 
-export async function addToTable (event, name = config.dynamoDBTableName) {
-  var AWS = require('aws-sdk');
-  var documentClient = new AWS.DynamoDB.DocumentClient();
+export async function addFiredPixelToTable (item, name = "FiredPixels") {
+  try {
+    var params = {
+        TableName: name,
+        Item : {
+            id: item['hid'] + '-' + item['sid'],
+            hid: item['hid'],
+            sid: item['sid'],
+            transid: item['transid'],
+            url: item['url'],
+            useragent: item['useragent'],
+            created: Date()
+        }
+    }
+  }
+  catch(err) {
+    log('Error in getting data for fired pixel: ', err)
+    var params = {
+        TableName: name,
+        Item : {
+            id: 'UNKNOWN-' + Date.now()
+        }
+    }
+  }
 
+  await addToTable(params);
+}
+
+export async function addDeadPixelToTable (event, name = "DeadPixels") {
   try {
     var item =
         JSON.parse(
@@ -90,7 +115,7 @@ export async function addToTable (event, name = config.dynamoDBTableName) {
     }
   }
   catch(err) {
-    log('Error in getting data: ', err)
+    log('Error in getting data for dead pixel: ', err)
     var params = {
         TableName: name,
         Item : {
@@ -98,6 +123,13 @@ export async function addToTable (event, name = config.dynamoDBTableName) {
         }
     }
   }
+
+  await addToTable(params);
+}
+
+export async function addToTable (params) {
+  var AWS = require('aws-sdk');
+  var documentClient = new AWS.DynamoDB.DocumentClient();
 
   var putObjectPromise = documentClient.put(params).promise();
   putObjectPromise.then( data => {

@@ -2,7 +2,7 @@ const path = require('path')
 const decompress = require('decompress')
 const webpack = require('webpack')
 
-const chromeTarball = path.join(__dirname, 'chrome/chrome-headless-lambda-linux-x64.tar.gz')
+const chromeTarball = path.join(__dirname, 'chrome/chrome-headless-lambda-linux-x64.zip')
 const webpackDir = path.join(__dirname, '.webpack/')
 
 function ExtractTarballPlugin (archive, to) {

@@ -1,7 +1,7 @@
 import Cdp from 'chrome-remote-interface'
 import config from '../config'
 import { spawn as spawnChrome, kill as killChrome } from '../chrome'
-import { log, deleteFromTable, generateError, feedDataDog } from '../utils'
+import { log, deleteFromTable, addFiredPixelToTable, generateError, feedDataDog } from '../utils'
 
 const LOAD_TIMEOUT = 1000 * 15
 const GLOBAL_LOAD_TIMEOUT = 1000 * 25
@@ -138,11 +138,10 @@ export async function cleanUpAndExit(error = null) {
     // It's important that we close the web socket connection,
     // or our Lambda function will not exit properly
     if (client) {
-      const { Network, Page, Target } = client
+      const { Network, Page } = client
       await Network.disable()
       await Page.disable()
-      await Target.closeTarget({ targetId: tab.id })
-      await client.close(tab)
+      await Cdp.Close(tab)
       log('Browser environment discarded')
     }
 
@@ -159,8 +158,9 @@ export async function cleanUpAndExit(error = null) {
     log('mainPixelFired: ', mainPixelFired)
 
     if (error === null && mainPixelFired === true) {
-      log('==================== Main pixel fired. Deleting from DynamoDB if it exists... ====================')
-      await deleteFromTable(event)
+      log('==================== Main pixel fired. Adding to backlog table FiredPixels and deleting from DeadPixels if it exists... ====================')
+      await addFiredPixelToTable(event);
+      await deleteFromTable(event, "DeadPixels");
 
       feedDataDog(
         1,
@@ -178,6 +178,9 @@ export async function cleanUpAndExit(error = null) {
 }
 
 function initVariables(e, c, cb) {
+  client = null
+  tab = null
+
   event = e
   context = c
   callback = cb
