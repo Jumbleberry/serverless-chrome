@@ -13,6 +13,8 @@ var requestIds = {}
 var responsesReceived = []
 
 var client = null
+var tab = null
+
 var mainPixelRequestId = null
 var mainPixelFired = false
 var globalExitTimeout = false
@@ -33,7 +35,7 @@ export async function firePixelHandler(e, c, cb) {
   log(`MONITORING|${unix_epoch_timestamp}|${metric_value}|${metric_type}|${metric_name}`)
 
   await spawnChrome()
-  const [tab] = await Cdp.List()
+  tab = await Cdp.New({ url: 'about:blank' })
   client = await Cdp({ host: '127.0.0.1', target: tab })
 
   const { Network, Page } = client
@@ -137,13 +139,13 @@ export async function cleanUpAndExit(error = null) {
 
     // It's important that we close the web socket connection,
     // or our Lambda function will not exit properly
-    if (client != null) {
-     await client.close()
-     log('Web socket connection closed.')
+    if (client) {
+      const { Network, Page } = client
+      await Network.disable()
+      await Page.disable()
+      await client.close(tab)
+      log('Browser environment discarded')
     }
-
-    await killChrome()
-    log('Chrome killed.')
 
     // Make sure to clear out the event loop
     clearTimeout(exitTimeout)
