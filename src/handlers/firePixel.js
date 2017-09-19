@@ -179,6 +179,9 @@ export async function cleanUpAndExit(error = null) {
 }
 
 function initVariables(e, c, cb) {
+  client = null
+  tab = null
+
   event = e
   context = c
   callback = cb

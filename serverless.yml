@@ -92,7 +92,7 @@ functions:
     memorySize: 512
     timeout: 30
     environment:
-      CHROME_PATH: ./headless-chrome/headless_shell
+      CHROME_PATH: ./headless_shell
   addDeadPixel:
     description: Add dead pixel to DynamoDB table
     handler: handler.addDeadPixel
