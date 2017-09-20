@@ -8,6 +8,8 @@ const GLOBAL_LOAD_TIMEOUT = 1000 * 25
 const WAIT_FOR_NEW_REQUEST = 1000 * 1
 const PAGE_TIMEOUT_ERROR = 'Page load timed out'
 
+var invocations = 0
+
 var requestsMade = []
 var requestIds = {}
 var responsesReceived = []
@@ -149,7 +151,15 @@ export async function cleanUpAndExit(error = null) {
       await Network.disable()
       await Page.disable()
       await Cdp.Close(tab)
+      await client.close()
       log('Browser environment discarded')
+    }
+    
+    // Kill chrome every 4 requests, some issue with ECONNREFUSED
+    if (invocations >= 4) {
+      invocations = 0
+      await killChrome()
+      await new Promise((resolve) => { return setTimeout(resolve, 250) })
     }
     
     // Successfully complete if the main pixel fired. Timeouts on other requests are unfortunate, but acceptable.
@@ -175,6 +185,8 @@ export async function cleanUpAndExit(error = null) {
 }
 
 function initVariables(e, c, cb) {
+  ++invocations
+  
   client = null
   tab = null
 
