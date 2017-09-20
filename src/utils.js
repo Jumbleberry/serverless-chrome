@@ -18,23 +18,27 @@ export function psLookup (options = { command: '' }) {
   })
 }
 
-export function psKill (options = { command: '' }) {
+export function psKill (options = { command: '', arguments: '--headless' }) {
   return new Promise((resolve, reject) => {
-    ps.lookup(options, (error, result) => {
-      if (error) {
+    ps.lookup(options, async (error, result) => {
+      try {
+        log('PS lookup result: ', JSON.stringify(result, null, ' '));
+        if (error) throw error;
+
+        const promisesToAwait = [];
+        result.forEach(process => {
+          promisesToAwait.push(new Promise((resolve, reject) => {
+            ps.kill(process.pid, {signal: 'SIGKILL', timeout: 5}, (err) => {
+              return err? reject(err): resolve(process.pid)
+            })
+          }))
+        })
+
+        await Promise.all(promisesToAwait)
+      } catch(error) {
+        log('Error in killing process: ', error)
         return reject(error)
       }
-
-      const promisesToAwait = [];
-      result.forEach(process => {
-        promisesToAwait.push(new Promise((resolve, reject) => {
-          ps.kill(process.pid, {signal: 'SIGKILL', timeout: 5}, (err) => {
-            return err? reject(err): resolve(process.pid)
-          })
-        }))
-      })
-
-      Promise.all(promisesToAwait)
       return resolve(result)
     })
   })
