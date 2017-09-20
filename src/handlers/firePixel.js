@@ -119,7 +119,7 @@ export async function firePixelHandler(e, c, cb) {
 
   } catch(err) {
     log('Error in setting up Network and Page: ', err)
-    cleanUpAndExit()
+    cleanUpAndExit(err)
   }
 }
 
@@ -148,16 +148,9 @@ export async function cleanUpAndExit(error = null) {
     // Make sure to clear out the event loop
     clearTimeout(exitTimeout)
     clearTimeout(globalExitTimeout)
-
-    // Treat page timeout error as normal error
-    if (error == 'Error: ' + PAGE_TIMEOUT_ERROR) {
-      error = null;
-    }
-
-    log('Error: ', error)
-    log('mainPixelFired: ', mainPixelFired)
-
-    if (error === null && mainPixelFired === true) {
+    
+    // Successfully complete if the main pixel fired. Timeouts on other requests are unfortunate, but acceptable.
+    if (mainPixelFired === true && (error === null || error == 'Error: ' + PAGE_TIMEOUT_ERROR)) {
       log('==================== Main pixel fired. Adding to backlog table FiredPixels and deleting from DeadPixels if it exists... ====================')
       await addFiredPixelToTable(event);
       await deleteFromTable(event, "DeadPixels");
@@ -171,6 +164,7 @@ export async function cleanUpAndExit(error = null) {
       context.succeed('Success')
     } else {
       log('==================== Main pixel did not fire :( ====================')
+      log('Error: ', error)
       let customError = generateError(event, 'Error in firing pixel.')
       context.fail(customError)
     }
