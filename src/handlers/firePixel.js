@@ -28,6 +28,8 @@ var context = null
 var callback = null
 
 export async function firePixelHandler(e, c, cb) {
+  log('Event payload:', JSON.stringify(e, null, ' '))
+
   initVariables(e, c, cb)
 
   feedDataDog(
@@ -130,7 +132,7 @@ export async function firePixelHandler(e, c, cb) {
 export async function cleanUpAndExit(error = null) {
   if (finished !== true) {
     finished = true
-    
+
     // Make sure to clear out the event loop
     clearTimeout(exitTimeout)
     clearTimeout(globalExitTimeout)
@@ -152,7 +154,7 @@ export async function cleanUpAndExit(error = null) {
       await Page.disable()
       await Cdp.Close(tab)
       log('Browser environment discarded')
-      
+
       // Kill chrome every 4 requests, some issue with ECONNREFUSED
       if (invocations >= 4) {
         log('Killing chrome process after ' + invocations + ' invocations')
@@ -160,11 +162,11 @@ export async function cleanUpAndExit(error = null) {
         await client.close()
         await killChrome()
       }
-      
+
       // Modest sleep, as some Cdp actions return before actually completing
       await sleep(350)
     }
-    
+
     // Successfully complete if the main pixel fired. Timeouts on other requests are unfortunate, but acceptable.
     if (mainPixelFired === true && (error === null || error === 'Error: ' + PAGE_TIMEOUT_ERROR)) {
       log('==================== Main pixel fired. Adding to backlog table FiredPixels and deleting from DeadPixels if it exists... ====================')
@@ -176,7 +178,7 @@ export async function cleanUpAndExit(error = null) {
         config.datadogPixelMetricType,
         config.datadogPixelMetricName,
         `campaign:${event['sid']},transid:${event['transid']}`)
-      
+
       context.succeed('Success')
     } else {
       log('==================== Main pixel did not fire :( ====================')
@@ -189,7 +191,7 @@ export async function cleanUpAndExit(error = null) {
 
 function initVariables(e, c, cb) {
   ++invocations
-  
+
   client = null
   tab = null
 
