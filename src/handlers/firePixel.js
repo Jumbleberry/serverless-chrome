@@ -157,6 +157,7 @@ export async function cleanUpAndExit(error = null) {
     
     // Kill chrome every 4 requests, some issue with ECONNREFUSED
     if (invocations >= 4) {
+      log('Killing chrome process after ' + invocations + ' invocations')
       invocations = 0
       await killChrome()
       await new Promise((resolve) => { return setTimeout(resolve, 250) })
