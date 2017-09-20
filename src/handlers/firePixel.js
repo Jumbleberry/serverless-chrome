@@ -151,16 +151,18 @@ export async function cleanUpAndExit(error = null) {
       await Network.disable()
       await Page.disable()
       await Cdp.Close(tab)
-      await client.close()
       log('Browser environment discarded')
-    }
-    
-    // Kill chrome every 4 requests, some issue with ECONNREFUSED
-    if (invocations >= 4) {
-      log('Killing chrome process after ' + invocations + ' invocations')
-      invocations = 0
-      await killChrome()
-      await sleep(250)
+      
+      // Kill chrome every 4 requests, some issue with ECONNREFUSED
+      if (invocations >= 4) {
+        log('Killing chrome process after ' + invocations + ' invocations')
+        invocations = 0
+        await client.close()
+        await killChrome()
+      }
+      
+      // Modest sleep, as some Cdp actions return before actually completing
+      await sleep(350)
     }
     
     // Successfully complete if the main pixel fired. Timeouts on other requests are unfortunate, but acceptable.
