@@ -114,6 +114,7 @@ export async function firePixelHandler(e, c, cb) {
 
       loadEventFired.then(async () => {
         log('==================== Page load complete ====================')
+        clearTimeout(pageLoadTimeout)
         resolve()
       })
     })
