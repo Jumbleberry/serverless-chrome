@@ -25,7 +25,7 @@ export async function isChromeRunning () {
   }
 
   try {
-    await got(`${HEADLESS_URL}/json`, { retries: 0, timeout: 50 })
+    await got(`${HEADLESS_URL}/json`, { retries: 0, timeout: 100 })
     running = true
   } catch (error) {
     running = false
