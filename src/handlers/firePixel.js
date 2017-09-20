@@ -42,7 +42,7 @@ export async function firePixelHandler(e, c, cb) {
   globalExitTimeout = setTimeout(cleanUpAndExit, GLOBAL_LOAD_TIMEOUT)
 
   Network.requestWillBeSent(params => {
-    if (!requestIds[params.requestId]) {
+    if (requestIds[params.requestId] !== true) {
       requestIds[params.requestId] = true
 
       log('Preparing new request to ' + params.request.url + '...')
@@ -61,12 +61,12 @@ export async function firePixelHandler(e, c, cb) {
       log('Receiving new response from ' + params.response.url + '...')
       responsesReceived.push(params)
 
-      if (Object.keys(requestIds).length == 0) {
+      if (Object.keys(requestIds).length === 0) {
         log('Set timeout to clean up and exit')
         exitTimeout = setTimeout(cleanUpAndExit, WAIT_FOR_NEW_REQUEST)
       }
 
-      if (mainPixelRequestId == params.requestId) {
+      if (mainPixelRequestId === params.requestId) {
         if (isHTTPStatusSuccess(params.response.status)) {
           log('==================== Main pixel fired! ====================')
           mainPixelFired = true
@@ -83,18 +83,18 @@ export async function firePixelHandler(e, c, cb) {
 
   try {
     await Network.enable()
-    await Network.setUserAgentOverride({ userAgent: event['useragent'] })
     await Network.setCacheDisabled({ cacheDisabled: true })
+    await Network.setUserAgentOverride({ userAgent: event['useragent'] || '' })
     await Network.canClearBrowserCookies() && await Network.clearBrowserCookies()
 
-    if (event['cookies'] !== undefined) {
+    if (typeof event['cookies'] != 'undefined' && event['cookies'] instanceof Array) {
       event['cookies'].forEach( async (cookie) => {
         log('Setting cookie...', cookie)
         await Network.setCookie(cookie)
       });
     }
 
-    if (event['headers'] !== undefined) {
+    if (typeof event['headers'] != 'undefined' && event['headers'] instanceof Array) {
       log('Setting headers...', event['headers'])
       await Network.setExtraHTTPHeaders({ headers: event['headers'] })
     }
@@ -124,7 +124,7 @@ export async function firePixelHandler(e, c, cb) {
 }
 
 export async function cleanUpAndExit(error = null) {
-  if (!finished) {
+  if (finished !== true) {
     finished = true
 
     log('*** Requests made:', JSON.stringify(requestsMade, null, ' '))
@@ -150,7 +150,7 @@ export async function cleanUpAndExit(error = null) {
     clearTimeout(globalExitTimeout)
     
     // Successfully complete if the main pixel fired. Timeouts on other requests are unfortunate, but acceptable.
-    if (mainPixelFired === true && (error === null || error == 'Error: ' + PAGE_TIMEOUT_ERROR)) {
+    if (mainPixelFired === true && (error === null || error === 'Error: ' + PAGE_TIMEOUT_ERROR)) {
       log('==================== Main pixel fired. Adding to backlog table FiredPixels and deleting from DeadPixels if it exists... ====================')
       await addFiredPixelToTable(event);
       await deleteFromTable(event, "DeadPixels");
