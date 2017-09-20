@@ -18,6 +18,7 @@ var mainPixelRequestId = null
 var mainPixelFired = false
 var globalExitTimeout = false
 var exitTimeout = false
+var pageLoadTimeout = false
 var finished = false
 
 var event = null
@@ -57,7 +58,7 @@ export async function firePixelHandler(e, c, cb) {
   })
 
   Network.responseReceived(params => {
-    if (delete requestIds[params.requestId]) {
+    if (requestIds[params.requestId] === true && delete requestIds[params.requestId]) {
       log('Receiving new response from ' + params.response.url + '...')
       responsesReceived.push(params)
 
@@ -105,14 +106,14 @@ export async function firePixelHandler(e, c, cb) {
 
     // wait until page is done loading, or timeout
     await new Promise((resolve, reject) => {
-      const timeout = setTimeout(
+      pageLoadTimeout = setTimeout(
         reject,
         LOAD_TIMEOUT,
         new Error(PAGE_TIMEOUT_ERROR)
       )
 
       loadEventFired.then(async () => {
-        clearTimeout(timeout)
+        log('==================== Page load complete ====================')
         resolve()
       })
     })
@@ -126,6 +127,11 @@ export async function firePixelHandler(e, c, cb) {
 export async function cleanUpAndExit(error = null) {
   if (finished !== true) {
     finished = true
+    
+    // Make sure to clear out the event loop
+    clearTimeout(exitTimeout)
+    clearTimeout(globalExitTimeout)
+    clearTimeout(pageLoadTimeout)
 
     log('*** Requests made:', JSON.stringify(requestsMade, null, ' '))
     log('*** Responses received:', JSON.stringify(responsesReceived, null, ' '))
@@ -144,10 +150,6 @@ export async function cleanUpAndExit(error = null) {
       await Cdp.Close(tab)
       log('Browser environment discarded')
     }
-
-    // Make sure to clear out the event loop
-    clearTimeout(exitTimeout)
-    clearTimeout(globalExitTimeout)
     
     // Successfully complete if the main pixel fired. Timeouts on other requests are unfortunate, but acceptable.
     if (mainPixelFired === true && (error === null || error === 'Error: ' + PAGE_TIMEOUT_ERROR)) {
@@ -188,6 +190,7 @@ function initVariables(e, c, cb) {
   mainPixelFired = false
   globalExitTimeout = clearTimeout(globalExitTimeout)
   exitTimeout = clearTimeout(exitTimeout)
+  pageLoadTimeout = clearTimeout(pageLoadTimeout)
 }
 
 function isHTTPStatusSuccess(httpStatusCode) {
