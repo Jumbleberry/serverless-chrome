@@ -1,7 +1,7 @@
 import Cdp from 'chrome-remote-interface'
 import config from '../config'
 import { spawn as spawnChrome, kill as killChrome } from '../chrome'
-import { log, deleteFromTable, addFiredPixelToTable, generateError, feedDataDog } from '../utils'
+import { log, sleep, deleteFromTable, addFiredPixelToTable, generateError, feedDataDog } from '../utils'
 
 const LOAD_TIMEOUT = 1000 * 15
 const GLOBAL_LOAD_TIMEOUT = 1000 * 25
@@ -94,7 +94,7 @@ export async function firePixelHandler(e, c, cb) {
       event['cookies'].forEach( async (cookie) => {
         log('Setting cookie...', cookie)
         await Network.setCookie(cookie)
-      });
+      })
     }
 
     if (typeof event['headers'] != 'undefined' && event['headers'] instanceof Array) {
@@ -160,20 +160,20 @@ export async function cleanUpAndExit(error = null) {
       log('Killing chrome process after ' + invocations + ' invocations')
       invocations = 0
       await killChrome()
-      await new Promise((resolve) => { return setTimeout(resolve, 250) })
+      await sleep(250)
     }
     
     // Successfully complete if the main pixel fired. Timeouts on other requests are unfortunate, but acceptable.
     if (mainPixelFired === true && (error === null || error === 'Error: ' + PAGE_TIMEOUT_ERROR)) {
       log('==================== Main pixel fired. Adding to backlog table FiredPixels and deleting from DeadPixels if it exists... ====================')
-      await addFiredPixelToTable(event);
-      await deleteFromTable(event, "DeadPixels");
+      await addFiredPixelToTable(event)
+      await deleteFromTable(event, "DeadPixels")
 
       feedDataDog(
         1,
         config.datadogPixelMetricType,
         config.datadogPixelMetricName,
-        `campaign:${event['sid']},transid:${event['transid']}`);
+        `campaign:${event['sid']},transid:${event['transid']}`)
       
       context.succeed('Success')
     } else {
