@@ -28,7 +28,7 @@ export function psKill (options = { command: '' }) {
       const promisesToAwait = [];
       result.forEach(process => {
         promisesToAwait.push(new Promise((resolve, reject) => {
-          ps.kill(process.pid, {signal: 'SIGKILL', timeout: 1}, function( err ) {
+          ps.kill(process.pid, {signal: 'SIGKILL', timeout: 1}, (err) => {
             return err? reject(err): resolve(process.pid)
           })
         })
