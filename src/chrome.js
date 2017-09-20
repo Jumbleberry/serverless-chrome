@@ -107,7 +107,7 @@ export async function spawn () {
 
 export async function kill () {
   try {
-    await psKill({ command: 'headless_shell' })
+    await psKill({ command: 'headless_shell', arguments: '--headless' })
   // Don't care if we failed to kill it
   } catch (error) {}
 }

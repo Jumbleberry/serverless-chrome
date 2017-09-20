@@ -18,7 +18,7 @@ export function psLookup (options = { command: '' }) {
   })
 }
 
-export function psKill (options = { command: '', arguments: '--headless' }) {
+export function psKill (options = { command: '' }) {
   return new Promise((resolve, reject) => {
     ps.lookup(options, async (error, result) => {
       try {
