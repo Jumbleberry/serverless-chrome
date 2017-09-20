@@ -25,7 +25,7 @@ export async function isChromeRunning () {
   }
 
   try {
-    await got(`${HEADLESS_URL}/json`, { retries: 0, timeout: 50 })
+    await got(`${HEADLESS_URL}/json`, { retries: 0, timeout: 100 })
     running = true
   } catch (error) {
     running = false
@@ -106,7 +106,8 @@ export async function spawn () {
 }
 
 export async function kill () {
-  const isRunning = await isChromeRunning()
-
-  if (isRunning) await psKill({ command: 'headless_shell' })
+  try {
+    await psKill({ command: 'headless_shell' })
+  // Don't care if we failed to kill it
+  } catch (error) {}
 }

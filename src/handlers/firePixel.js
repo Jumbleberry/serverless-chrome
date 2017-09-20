@@ -1,12 +1,14 @@
 import Cdp from 'chrome-remote-interface'
 import config from '../config'
 import { spawn as spawnChrome, kill as killChrome } from '../chrome'
-import { log, deleteFromTable, addFiredPixelToTable, generateError, feedDataDog } from '../utils'
+import { log, sleep, deleteFromTable, addFiredPixelToTable, generateError, feedDataDog } from '../utils'
 
 const LOAD_TIMEOUT = 1000 * 15
 const GLOBAL_LOAD_TIMEOUT = 1000 * 25
 const WAIT_FOR_NEW_REQUEST = 1000 * 1
 const PAGE_TIMEOUT_ERROR = 'Page load timed out'
+
+var invocations = 0
 
 var requestsMade = []
 var requestIds = {}
@@ -18,6 +20,7 @@ var mainPixelRequestId = null
 var mainPixelFired = false
 var globalExitTimeout = false
 var exitTimeout = false
+var pageLoadTimeout = false
 var finished = false
 
 var event = null
@@ -42,7 +45,7 @@ export async function firePixelHandler(e, c, cb) {
   globalExitTimeout = setTimeout(cleanUpAndExit, GLOBAL_LOAD_TIMEOUT)
 
   Network.requestWillBeSent(params => {
-    if (!requestIds[params.requestId]) {
+    if (requestIds[params.requestId] !== true) {
       requestIds[params.requestId] = true
 
       log('Preparing new request to ' + params.request.url + '...')
@@ -57,16 +60,16 @@ export async function firePixelHandler(e, c, cb) {
   })
 
   Network.responseReceived(params => {
-    if (delete requestIds[params.requestId]) {
+    if (requestIds[params.requestId] === true && delete requestIds[params.requestId]) {
       log('Receiving new response from ' + params.response.url + '...')
       responsesReceived.push(params)
 
-      if (Object.keys(requestIds).length == 0) {
+      if (Object.keys(requestIds).length === 0) {
         log('Set timeout to clean up and exit')
         exitTimeout = setTimeout(cleanUpAndExit, WAIT_FOR_NEW_REQUEST)
       }
 
-      if (mainPixelRequestId == params.requestId) {
+      if (mainPixelRequestId === params.requestId) {
         if (isHTTPStatusSuccess(params.response.status)) {
           log('==================== Main pixel fired! ====================')
           mainPixelFired = true
@@ -83,18 +86,18 @@ export async function firePixelHandler(e, c, cb) {
 
   try {
     await Network.enable()
-    await Network.setUserAgentOverride({ userAgent: event['useragent'] })
     await Network.setCacheDisabled({ cacheDisabled: true })
+    await Network.setUserAgentOverride({ userAgent: event['useragent'] || '' })
     await Network.canClearBrowserCookies() && await Network.clearBrowserCookies()
 
-    if (event['cookies'] !== undefined) {
+    if (typeof event['cookies'] != 'undefined' && event['cookies'] instanceof Array) {
       event['cookies'].forEach( async (cookie) => {
         log('Setting cookie...', cookie)
         await Network.setCookie(cookie)
-      });
+      })
     }
 
-    if (event['headers'] !== undefined) {
+    if (typeof event['headers'] != 'undefined' && event['headers'] instanceof Array) {
       log('Setting headers...', event['headers'])
       await Network.setExtraHTTPHeaders({ headers: event['headers'] })
     }
@@ -105,27 +108,33 @@ export async function firePixelHandler(e, c, cb) {
 
     // wait until page is done loading, or timeout
     await new Promise((resolve, reject) => {
-      const timeout = setTimeout(
+      pageLoadTimeout = setTimeout(
         reject,
         LOAD_TIMEOUT,
         new Error(PAGE_TIMEOUT_ERROR)
       )
 
       loadEventFired.then(async () => {
-        clearTimeout(timeout)
+        log('==================== Page load complete ====================')
+        clearTimeout(pageLoadTimeout)
         resolve()
       })
     })
 
   } catch(err) {
     log('Error in setting up Network and Page: ', err)
-    cleanUpAndExit()
+    cleanUpAndExit(err)
   }
 }
 
 export async function cleanUpAndExit(error = null) {
-  if (!finished) {
+  if (finished !== true) {
     finished = true
+    
+    // Make sure to clear out the event loop
+    clearTimeout(exitTimeout)
+    clearTimeout(globalExitTimeout)
+    clearTimeout(pageLoadTimeout)
 
     log('*** Requests made:', JSON.stringify(requestsMade, null, ' '))
     log('*** Responses received:', JSON.stringify(responsesReceived, null, ' '))
@@ -143,34 +152,35 @@ export async function cleanUpAndExit(error = null) {
       await Page.disable()
       await Cdp.Close(tab)
       log('Browser environment discarded')
+      
+      // Kill chrome every 4 requests, some issue with ECONNREFUSED
+      if (invocations >= 4) {
+        log('Killing chrome process after ' + invocations + ' invocations')
+        invocations = 0
+        await client.close()
+        await killChrome()
+      }
+      
+      // Modest sleep, as some Cdp actions return before actually completing
+      await sleep(350)
     }
-
-    // Make sure to clear out the event loop
-    clearTimeout(exitTimeout)
-    clearTimeout(globalExitTimeout)
-
-    // Treat page timeout error as normal error
-    if (error == 'Error: ' + PAGE_TIMEOUT_ERROR) {
-      error = null;
-    }
-
-    log('Error: ', error)
-    log('mainPixelFired: ', mainPixelFired)
-
-    if (error === null && mainPixelFired === true) {
+    
+    // Successfully complete if the main pixel fired. Timeouts on other requests are unfortunate, but acceptable.
+    if (mainPixelFired === true && (error === null || error === 'Error: ' + PAGE_TIMEOUT_ERROR)) {
       log('==================== Main pixel fired. Adding to backlog table FiredPixels and deleting from DeadPixels if it exists... ====================')
-      await addFiredPixelToTable(event);
-      await deleteFromTable(event, "DeadPixels");
+      await addFiredPixelToTable(event)
+      await deleteFromTable(event, "DeadPixels")
 
       feedDataDog(
         1,
         config.datadogPixelMetricType,
         config.datadogPixelMetricName,
-        `campaign:${event['sid']},transid:${event['transid']}`);
+        `campaign:${event['sid']},transid:${event['transid']}`)
       
       context.succeed('Success')
     } else {
       log('==================== Main pixel did not fire :( ====================')
+      log('Error: ', error)
       let customError = generateError(event, 'Error in firing pixel.')
       context.fail(customError)
     }
@@ -178,6 +188,8 @@ export async function cleanUpAndExit(error = null) {
 }
 
 function initVariables(e, c, cb) {
+  ++invocations
+  
   client = null
   tab = null
 
@@ -194,6 +206,7 @@ function initVariables(e, c, cb) {
   mainPixelFired = false
   globalExitTimeout = clearTimeout(globalExitTimeout)
   exitTimeout = clearTimeout(exitTimeout)
+  pageLoadTimeout = clearTimeout(pageLoadTimeout)
 }
 
 function isHTTPStatusSuccess(httpStatusCode) {
