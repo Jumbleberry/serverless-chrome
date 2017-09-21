@@ -130,48 +130,54 @@ export async function firePixelHandler(e, c, cb) {
 }
 
 export async function cleanUpAndExit(error = null) {
+  // Guard against single exit point
+  // Only the first call to cleanUpAndExit will be executed
   if (finished !== true) {
-    finished = true
+    // Set the singleton flag
+    finished = true;
+    // Check if main pixel is fired and no error
+    var isSuccess = mainPixelFired === true && (error === null || error === 'Error: ' + PAGE_TIMEOUT_ERROR);
 
-    // Make sure to clear out the event loop
-    clearTimeout(exitTimeout)
-    clearTimeout(globalExitTimeout)
-    clearTimeout(pageLoadTimeout)
-
-    log('*** Requests made:', JSON.stringify(requestsMade, null, ' '))
-    log('*** Responses received:', JSON.stringify(responsesReceived, null, ' '))
-    if (Object.keys(requestIds).length === 0 && requestIds.constructor === Object) {
-      log('*** All requests have been processed and received.')
-    } else {
-      log('*** Requests still waiting: ', JSON.stringify(requestIds, null, ' '))
-    }
-
-    // It's important that we close the web socket connection,
-    // or our Lambda function will not exit properly
-    if (client) {
-      const { Network, Page } = client
-      await Network.disable()
-      await Page.disable()
-      await Cdp.Close(tab)
-      log('Browser environment discarded')
-
-      // Kill chrome every 4 requests, some issue with ECONNREFUSED
-      if (invocations >= 4) {
-        log('Killing chrome process after ' + invocations + ' invocations')
-        invocations = 0
-        await client.close()
-        await killChrome()
+    try {
+      // Make sure to clear out the event loop
+      clearTimeout(exitTimeout)
+      clearTimeout(globalExitTimeout)
+      clearTimeout(pageLoadTimeout)
+      // Log all requests and responses
+      log('*** Requests made:', JSON.stringify(requestsMade, null, ' '))
+      log('*** Responses received:', JSON.stringify(responsesReceived, null, ' '))
+      if (Object.keys(requestIds).length === 0 && requestIds.constructor === Object) {
+        log('*** All requests have been processed and received.')
+      } else {
+        log('*** Requests still waiting: ', JSON.stringify(requestIds, null, ' '))
       }
 
-      // Modest sleep, as some Cdp actions return before actually completing
-      await sleep(350)
+      // It's important that we close the web socket connection,
+      // or our Lambda function will not exit properly
+      if (client) {
+        // Discard browser environment
+        const { Network, Page } = client
+        await Network.disable()
+        await Page.disable()
+        await Cdp.Close(tab)
+        log('Browser environment discarded')
+        // Kill chrome every 4 requests, some issue with ECONNREFUSED
+        if (invocations >= 4) {
+          log('Killing chrome process after ' + invocations + ' invocations')
+          invocations = 0
+          await client.close()
+          await killChrome()
+        }
+        // Modest sleep, as some Cdp actions return before actually completing
+        await sleep(350)
+      }
+    } catch(error) {
+      log('Error in cleaning up chrome instance, error:', error)
     }
 
     // Successfully complete if the main pixel fired. Timeouts on other requests are unfortunate, but acceptable.
-    if (mainPixelFired === true && (error === null || error === 'Error: ' + PAGE_TIMEOUT_ERROR)) {
+    if (isSuccess) {
       log('==================== Main pixel fired. Adding to backlog table FiredPixels and deleting from DeadPixels if it exists... ====================')
-      await addFiredPixelToTable(event)
-      await deleteFromTable(event, "DeadPixels")
 
       feedDataDog(
         1,
@@ -179,8 +185,16 @@ export async function cleanUpAndExit(error = null) {
         config.datadogPixelMetricName,
         `campaign:${event['sid']},transid:${event['transid']}`)
 
+      try {
+        await addFiredPixelToTable(event)
+        await deleteFromTable(event, "DeadPixels")
+      } catch (error) {
+        log('Error in updating DynamoDB tables, error: ', error)
+      }
+
       context.succeed('Success')
-    } else {
+    }
+    else {
       log('==================== Main pixel did not fire :( ====================')
       log('Error: ', error)
       let customError = generateError(event, 'Error in firing pixel.')
